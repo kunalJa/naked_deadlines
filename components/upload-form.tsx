@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ImagePreview } from "@/components/image-preview"
 import { FriendEmailForm } from "@/components/friend-email-form"
-import { Upload, Camera, Bomb } from "lucide-react"
+import { Upload, Camera, Bomb, Twitter } from "lucide-react"
 import { startTimer } from "@/lib/actions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/components/auth-provider"
 
 export function UploadForm() {
   const router = useRouter()
@@ -28,6 +29,9 @@ export function UploadForm() {
   const [goalDescription, setGoalDescription] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<string>("date")
+  const [isTweeting, setIsTweeting] = useState(false)
+  const [tweetResult, setTweetResult] = useState<{ success: boolean; message: string } | null>(null)
+  const { user } = useAuth()
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,6 +51,45 @@ export function UploadForm() {
     // Trigger the hidden file input when the button is clicked
     if (fileInputRef.current) {
       fileInputRef.current.click()
+    }
+  }
+
+  const handleTestTweet = async () => {
+    if (!image) {
+      setTweetResult({ success: false, message: "Please upload an image first" })
+      return
+    }
+    
+    setIsTweeting(true)
+    setTweetResult(null)
+    
+    try {
+      const formData = new FormData()
+      formData.append("image", image)
+      formData.append("message", `Test tweet 🙈 #productivity`)
+      
+      const response = await fetch("/api/tweet", {
+        method: "POST",
+        body: formData
+      })
+      
+      if (!response.ok) {
+        throw new Error(`Failed to tweet: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      setTweetResult({ 
+        success: true, 
+        message: `Tweet posted successfully! Tweet ID: ${result.tweetId}` 
+      })
+    } catch (error) {
+      console.error("Error sending test tweet:", error)
+      setTweetResult({ 
+        success: false, 
+        message: `Failed to tweet: ${error instanceof Error ? error.message : String(error)}` 
+      })
+    } finally {
+      setIsTweeting(false)
     }
   }
 
@@ -293,6 +336,31 @@ export function UploadForm() {
           </div>
         </form>
       </CardContent>
+      {/* Test Tweet Button */}
+      {user && image && (
+        <div className="mt-4 p-4 border-t border-dashed border-primary/30">
+          <div className="flex flex-col items-center">
+            <p className="text-sm font-medium mb-2">Test the Twitter integration:</p>
+            <Button 
+              type="button" 
+              onClick={handleTestTweet} 
+              disabled={isTweeting || !image} 
+              variant="outline"
+              className="gap-2"
+            >
+              <Twitter className="h-4 w-4" />
+              {isTweeting ? "Posting..." : "Test Tweet This Image"}
+            </Button>
+            
+            {tweetResult && (
+              <div className={`mt-2 p-2 rounded text-sm ${tweetResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {tweetResult.message}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <CardFooter className="flex justify-end bg-gradient-to-r from-primary/10 to-secondary/10 rounded-b-lg p-6">
         <Button
           onClick={handleSubmit}
