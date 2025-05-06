@@ -29,45 +29,62 @@ export function ChickenOutModal({ isOpen, onClose, onConfirm }: ChickenOutModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-yellow-500">🐔 BAWK BAWK BAWK! 🐔</DialogTitle>
-          <DialogDescription className="text-center text-lg">
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="space-y-1 pb-2">
+          <DialogTitle className="text-center text-xl font-bold text-yellow-500">🐔 BAWK BAWK BAWK! 🐔</DialogTitle>
+          <DialogDescription className="text-center text-base">
             Are you REALLY going to chicken out right now?
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="bg-yellow-100 dark:bg-yellow-900/30 p-4 rounded-lg border-2 border-yellow-300 dark:border-yellow-700">
-            <p className="font-bold text-center">Your photo is THIS CLOSE to being tweeted!</p>
-            <div className="flex justify-center my-4">
-              <div className="relative w-24 h-24 bg-muted rounded-full overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center text-4xl">🙈</div>
+
+        <div className="space-y-3 py-2">
+          <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg border-2 border-yellow-300 dark:border-yellow-700">
+            <p className="font-bold text-center text-sm">Your photo is THIS CLOSE to being tweeted!</p>
+            <div className="flex justify-center my-2">
+              <div className="relative w-16 h-16 bg-muted rounded-full overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center text-2xl">🙈</div>
                 <div
                   className="absolute inset-0 bg-gradient-to-t from-transparent to-background"
                   style={{ height: "60%" }}
                 ></div>
               </div>
             </div>
-            <p className="text-center italic">You could just... you know... actually FINISH your goal instead? 💪</p>
+            <p className="text-center italic text-xs">
+              You could just... you know... actually FINISH your goal instead? 💪
+            </p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox id="confirm" checked={confirmed} onCheckedChange={(checked) => setConfirmed(!!checked)} />
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="confirm"
+              checked={confirmed}
+              onCheckedChange={(checked) => setConfirmed(!!checked)}
+              className="mt-1"
+            />
             <Label
               htmlFor="confirm"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-xs font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Yes, I'm a chicken. Bawk bawk. 🐔 I give up on my goals and accept eternal shame.
             </Label>
           </div>
         </div>
-        <DialogFooter className="sm:justify-between gap-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Wait, I'll finish my goal! 💪
-          </Button>
-          <Button type="button" variant="destructive" disabled={!confirmed} onClick={handleConfirm}>
-            Yes, I'm chickening out 🐔
-          </Button>
+
+        <DialogFooter className="pt-2">
+          <div className="flex flex-col sm:flex-row w-full gap-2 sm:justify-between">
+            <Button type="button" variant="outline" onClick={onClose} className="sm:flex-1">
+              I'll finish my goal! 💪
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={!confirmed}
+              onClick={handleConfirm}
+              className="sm:flex-1"
+            >
+              I'm chickening out 🐔
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
