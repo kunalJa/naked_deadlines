@@ -29,28 +29,34 @@ export default function PrivacyPage() {
             <h3>Information We Collect</h3>
             <ul>
               <li>
-                <strong>Uploaded Content:</strong> We collect the photos you voluntarily upload to our platform.
+                <strong>Account Information:</strong> We collect your Twitter username, basic
+                contact information, and authorization tokens via Twitter's API.
               </li>
               <li>
-                <strong>Account Information:</strong> If you choose to provide it, such as your Twitter handle, basic
-                contact information, and authorization tokens via Twitter's API.
+                <strong>Goal Information:</strong> We store your goal description and deadline information.
               </li>
             </ul>
 
             <h3>How We Use Your Information</h3>
             <ul>
               <li>
-                To facilitate the posting of your uploaded photo to your Twitter account, as directed by you, using the
+                To facilitate the posting of your photo to your Twitter account ONLY if you miss your deadline, using the
                 Twitter API.
               </li>
+              <li>To track your goals and deadlines.</li>
               <li>To operate, maintain, and improve the Services.</li>
             </ul>
 
             <h3>Sharing of Information</h3>
             <ul>
-              <li>We share the uploaded photo to Twitter only with your explicit consent at the time of upload.</li>
               <li>
-                We may access your Twitter account via the Twitter API strictly for posting content you have authorized.
+                <strong>Your Privacy is Our Priority:</strong> Your uploaded photos remain entirely local to your browser and are never sent to our servers.
+              </li>
+              <li>
+                We share your photo to Twitter ONLY if you miss your deadline, using the authorization you provided.
+              </li>
+              <li>
+                We may access your Twitter account via the Twitter API strictly for posting content if you miss your deadline.
               </li>
               <li>We do not sell your information to third parties.</li>
             </ul>
@@ -69,8 +75,8 @@ export default function PrivacyPage() {
 
             <h3>Data Retention</h3>
             <p>
-              Uploaded photos and any access tokens are stored only as long as necessary to complete the upload to
-              Twitter or as otherwise permitted by law.
+              Your photos are stored locally in your browser's storage and are never transmitted to our servers. 
+              Access tokens and goal information are stored only as long as necessary to provide our service or as otherwise permitted by law.
             </p>
 
             <h3>Security</h3>
