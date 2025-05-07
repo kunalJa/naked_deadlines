@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getToken } from "next-auth/jwt"
 
+// Maximum file size for direct upload (5MB in bytes)
+const MAX_DIRECT_UPLOAD_SIZE = 5 * 1024 * 1024
+
 export async function POST(req: NextRequest) {
   // Get the token from NextAuth JWT
   const token = await getToken({ 
@@ -21,11 +24,34 @@ export async function POST(req: NextRequest) {
     // Get it from the token we received from NextAuth
     const accessToken = token.accessToken as string
     
-    // Upload the image to Twitter
-    const mediaId = await uploadImageToTwitter(image, accessToken as string)
+    let mediaId: string
+    
+    // Check file size to determine upload method
+    if (image.size <= MAX_DIRECT_UPLOAD_SIZE) {
+      try {
+        // Try direct upload first for files under 5MB
+        console.log("Attempting direct media upload (file size: " + image.size + " bytes)")
+        mediaId = await uploadMediaDirect(image, accessToken)
+      } catch (uploadError) {
+        console.error("Direct upload failed, falling back to chunked upload:", uploadError)
+        throw uploadError
+        // Fall back to chunked upload if direct upload fails
+        // mediaId = await uploadImageToTwitter(image, accessToken)
+      }
+    } else {
+      console.log("File exceeds 5MB limit, using chunked upload (file size: " + image.size + " bytes)")
+      throw new Error(`File size exceeds 5MB limit for direct upload: ${image.size} bytes`)
+      // Use chunked upload for files larger than 5MB
+      // mediaId = await uploadImageToTwitter(image, accessToken)
+    }
     
     // Post the tweet with the image
-    const tweet = await postTweetWithMedia(message, mediaId, accessToken as string)
+    if (!mediaId) {
+      throw new Error("Media ID is undefined after upload process")
+    }
+    await new Promise(resolve => setTimeout(resolve, 5 * 1000)) // mimic the check status but since we have rate limit dont check
+    
+    const tweet = await postTweetWithMedia(message, mediaId, accessToken)
     
     return NextResponse.json({ success: true, tweetId: tweet.data.id })
   } catch (error) {
@@ -34,15 +60,63 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Function to upload image to Twitter using v2 API
+// Function for direct media upload (for files under 5MB)
+async function uploadMediaDirect(image: File, accessToken: string): Promise<string> {
+  // Check file size
+  if (image.size > MAX_DIRECT_UPLOAD_SIZE) {
+    throw new Error(`File size exceeds 5MB limit for direct upload: ${image.size} bytes`)
+  }
+  
+  const arrayBuffer = await image.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  
+  // Create FormData for the direct upload
+  const formData = new FormData()
+  
+  // Create a Blob from the buffer with the correct MIME type
+  const mediaBlob = new Blob([buffer], { type: image.type })
+  
+  // 1. Append the media file itself with proper name
+  formData.append("media", mediaBlob, image.name || 'image')
+  
+  // 2. Append the media_category for a tweet image
+  formData.append("media_category", "tweet_image")
+  
+  // Make the direct upload request
+  const response = await fetch("https://api.x.com/2/media/upload", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`
+      // Content-Type is automatically set by fetch for FormData
+    },
+    body: formData
+  })
+  
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Twitter direct media upload error: ${response.status} - ${errorText}`)
+  }
+  
+  const data = await response.json()
+  // console.log("Direct upload response:", JSON.stringify(data))
+  
+  // Twitter API v2 returns media_key instead of media_id_string
+  if (data.id) {
+    return data.id;
+  } else {
+    throw new Error(`Twitter API did not return a media_key or media_id_string: ${JSON.stringify(data)}`)
+  }
+}
+
+// Function to upload image to Twitter using v2 API with chunked upload
 async function uploadImageToTwitter(image: File, accessToken: string) {
   // Convert File to ArrayBuffer
   const arrayBuffer = await image.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
-  console.log(image.type)
+
   
   // Step 1: INIT - Initialize the upload
-  const initResponse = await fetch("https://api.twitter.com/2/media/upload/initialize", {
+  const initResponse = await fetch("https://api.x.com/2/media/upload/initialize", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
@@ -74,7 +148,7 @@ async function uploadImageToTwitter(image: File, accessToken: string) {
     formData.append("media", new Blob([chunk]), image.name || 'media_chunk')
     
     // Construct URL with query parameter for segment_index
-    const appendUrl = new URL(`https://api.twitter.com/2/media/upload/${mediaId}/append`)
+    const appendUrl = new URL(`https://api.x.com/2/media/upload/${mediaId}/append`)
     appendUrl.searchParams.set("segment_index", segmentIndex.toString())
     
     const appendResponse = await fetch(appendUrl.toString(), {
@@ -95,7 +169,7 @@ async function uploadImageToTwitter(image: File, accessToken: string) {
   }
   
   // Step 3: FINALIZE - Complete the upload
-  const finalizeResponse = await fetch(`https://api.twitter.com/2/media/upload/${mediaId}/finalize`, {
+  const finalizeResponse = await fetch(`https://api.x.com/2/media/upload/${mediaId}/finalize`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
@@ -129,7 +203,7 @@ async function waitForMediaProcessing(mediaId: string, accessToken: string, proc
   await new Promise(resolve => setTimeout(resolve, checkAfterSecs * 1000))
   
   // Check status
-  const statusResponse = await fetch(`https://api.twitter.com/2/media/upload/${mediaId}/status`, {
+  const statusResponse = await fetch(`https://api.x.com/2/media/upload/${mediaId}/status`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
@@ -154,7 +228,7 @@ async function waitForMediaProcessing(mediaId: string, accessToken: string, proc
 
 // Function to post a tweet with media
 async function postTweetWithMedia(text: string, mediaId: string, accessToken: string) {
-  const response = await fetch("https://api.twitter.com/2/tweets", {
+  const response = await fetch("https://api.x.com/2/tweets", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
