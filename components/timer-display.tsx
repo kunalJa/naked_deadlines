@@ -153,6 +153,16 @@ export function TimerDisplay() {
                   We've sent a confirmation link to <span className="font-bold">{timerData.friendEmail}</span>. They
                   need to verify your goal completion before the deadline!
                 </p>
+                
+                <div className="p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
+                  <p className="text-sm font-bold flex items-center">
+                    <span className="mr-2">🔒</span>
+                    Your photo is stored ONLY in your browser.
+                  </p>
+                  <p className="text-xs mt-1">
+                    For privacy, your image remains local until deadline expiration. It will only be uploaded if you fail to complete your goal in time.
+                  </p>
+                </div>
 
                 <div className="flex items-center p-3 border-2 border-yellow-400 rounded-md bg-yellow-100 dark:bg-yellow-900/30">
                   <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />

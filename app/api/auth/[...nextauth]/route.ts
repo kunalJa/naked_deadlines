@@ -38,7 +38,7 @@ export const authOptions = {
       if (account) {
         token.accessToken = account.access_token;
       }
-      console.log("Auth Token Object:", JSON.stringify(token, null, 2));
+      // console.log("Auth Token Object:", JSON.stringify(token, null, 2));
       return token;
     },
     async session({ session, token }: { session: SessionWithToken; token: Token }) {

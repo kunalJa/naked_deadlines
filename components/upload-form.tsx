@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,15 +33,51 @@ export function UploadForm() {
   const [tweetResult, setTweetResult] = useState<{ success: boolean; message: string } | null>(null)
   const { user } = useAuth()
 
+  // Load image from local storage when component mounts
+  useEffect(() => {
+    // Only run in the browser, not during server-side rendering
+    if (typeof window !== 'undefined') {
+      const savedImagePreview = localStorage.getItem('nakedDeadlines_imagePreview');
+      if (savedImagePreview) {
+        setImagePreview(savedImagePreview);
+        
+        // Convert base64 to File object
+        const fetchImageFile = async () => {
+          try {
+            const response = await fetch(savedImagePreview);
+            const blob = await response.blob();
+            const fileName = localStorage.getItem('nakedDeadlines_imageName') || 'image.jpg';
+            const fileType = localStorage.getItem('nakedDeadlines_imageType') || 'image/jpeg';
+            const file = new File([blob], fileName, { type: fileType });
+            setImage(file);
+          } catch (error) {
+            console.error('Error converting saved image to File:', error);
+          }
+        };
+        
+        fetchImageFile();
+      }
+    }
+  }, []);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      // When a new image is uploaded, we'll replace the old one
       const file = e.target.files[0]
       setImage(file)
 
       // Create a preview URL for the image
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const previewUrl = reader.result as string;
+        setImagePreview(previewUrl)
+        
+        // Save to local storage - this automatically replaces any previous image
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nakedDeadlines_imagePreview', previewUrl);
+          localStorage.setItem('nakedDeadlines_imageName', file.name);
+          localStorage.setItem('nakedDeadlines_imageType', file.type);
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -93,6 +129,19 @@ export function UploadForm() {
     }
   }
 
+  // Function to clear the image from state and local storage
+  const clearSavedImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    
+    // Clear from local storage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('nakedDeadlines_imagePreview');
+      localStorage.removeItem('nakedDeadlines_imageName');
+      localStorage.removeItem('nakedDeadlines_imageType');
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -129,12 +178,12 @@ export function UploadForm() {
         deadlineTimestamp = Date.now() + hoursMs + minutesMs
       }
 
-      // In a real app, we would upload the image to a server here
-      // For now, we'll just simulate the API call
+      // We're keeping the image entirely local to the browser
+      // No image data is ever sent to the server for privacy reasons
 
-      // Start the timer
+      // Start the timer - we only send metadata, not the actual image
       await startTimer({
-        imageId: "temp-image-id", // This would be the ID of the uploaded image
+        imageId: "local-only-image", // Just a placeholder, the actual image stays in localStorage
         deadline: deadlineTimestamp,
         friendEmail,
         goalDescription,
@@ -191,6 +240,16 @@ export function UploadForm() {
                   <Camera className="h-5 w-5 text-primary" />
                   Upload Your "Motivational" Photo
                 </Label>
+                
+                <div className="mt-2 p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
+                  <p className="text-sm font-bold flex items-center">
+                    <span className="mr-2">🔒</span>
+                    Your photos are 100% private and stored ONLY in your browser.
+                  </p>
+                  <p className="text-xs mt-1">
+                    Images are never uploaded to our servers. Your privacy is our priority! The image will be uploaded to twitter if you fail your deadline however.
+                  </p>
+                </div>
 
                 {/* Hidden file input */}
                 <input
@@ -346,10 +405,24 @@ export function UploadForm() {
               onClick={handleTestTweet} 
               disabled={isTweeting || !image} 
               variant="outline"
-              className="gap-2"
+              className="gap-2 relative"
             >
-              <Twitter className="h-4 w-4" />
-              {isTweeting ? "Posting..." : "Test Tweet This Image"}
+              {isTweeting ? (
+                <>
+                  <span className="opacity-0">Test Tweet This Image</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                      <span>Posting...</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Twitter className="h-4 w-4" />
+                  Test Tweet This Image
+                </>
+              )}
             </Button>
             
             {tweetResult && (
@@ -365,9 +438,21 @@ export function UploadForm() {
         <Button
           onClick={handleSubmit}
           disabled={!isFormValid || isSubmitting}
-          className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 font-bold text-lg px-8 bounce-hover disabled:opacity-30 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 disabled:hover:from-gray-400 disabled:hover:to-gray-500"
+          className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 font-bold text-lg px-8 bounce-hover disabled:opacity-30 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 disabled:hover:from-gray-400 disabled:hover:to-gray-500 relative"
         >
-          {isSubmitting ? "Starting..." : "Start The Countdown! 🚀"}
+          {isSubmitting ? (
+            <>
+              <span className="opacity-0">Start The Countdown! 🚀</span>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                  <span>Starting...</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            "Start The Countdown! 🚀"
+          )}
         </Button>
       </CardFooter>
     </Card>
