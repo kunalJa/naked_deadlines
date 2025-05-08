@@ -12,9 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ImagePreview } from "@/components/image-preview"
 import { FriendEmailForm } from "@/components/friend-email-form"
 import { Upload, Camera, Bomb, Twitter } from "lucide-react"
-import { startTimer } from "@/lib/actions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/components/auth-provider"
+import { saveTimer } from "@/services/timer-service"
+import { TimerData } from "@/types/timer"
+import { useToast } from "@/components/ui/use-toast"
 
 export function UploadForm() {
   const router = useRouter()
@@ -31,7 +33,9 @@ export function UploadForm() {
   const [activeTab, setActiveTab] = useState<string>("date")
   const [isTweeting, setIsTweeting] = useState(false)
   const [tweetResult, setTweetResult] = useState<{ success: boolean; message: string } | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { toast } = useToast()
 
   // Load image from local storage when component mounts
   useEffect(() => {
@@ -144,55 +148,96 @@ export function UploadForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
+    setSaveError(null)
 
-    if (
-      !image ||
-      (!deadline && activeTab === "date") ||
-      ((!durationHours || durationHours === "0") &&
-        (!durationMinutes || durationMinutes === "0") &&
-        activeTab === "duration") ||
-      !friendEmail ||
-      !goalDescription
-    ) {
-      // Show validation error
+    const isFormValid = () => {
+      return !(!image ||
+        (!deadline && activeTab === "date") ||
+        ((!durationHours || durationHours === "0") &&
+          (!durationMinutes || durationMinutes === "0") &&
+          activeTab === "duration") ||
+        !friendEmail ||
+        !goalDescription)
+    }
+
+    if (!isFormValid()) {
+      setIsSubmitting(false)
       return
     }
 
-    setIsSubmitting(true)
-
     try {
+      if (!user?.name) {
+        throw new Error("You must be logged in to start a timer")
+      }
+
       // Calculate the deadline timestamp
-      let deadlineTimestamp: number
+      let deadlineDate: Date
 
       if (activeTab === "date") {
         // Combine date and time
         const [year, month, day] = deadline.split("-").map(Number)
         const [hours, minutes] = deadlineTime.split(":").map(Number)
 
-        const deadlineDate = new Date(year, month - 1, day, hours, minutes)
-        deadlineTimestamp = deadlineDate.getTime()
+        deadlineDate = new Date(year, month - 1, day, hours, minutes)
       } else {
         // Convert hours and minutes to milliseconds and add to current time
         const hoursMs = Number.parseInt(durationHours || "0") * 60 * 60 * 1000
         const minutesMs = Number.parseInt(durationMinutes || "0") * 60 * 1000
-        deadlineTimestamp = Date.now() + hoursMs + minutesMs
+        deadlineDate = new Date(Date.now() + hoursMs + minutesMs)
       }
+      
+      // Convert to ISO string for storage
+      const deadlineTimestamp = deadlineDate.toISOString()
 
       // We're keeping the image entirely local to the browser
       // No image data is ever sent to the server for privacy reasons
+      // Generate a unique key for the image in local storage
+      const imageKey = `nakedDeadlines_${user.name}_${Date.now()}`
+      
+      // Save the current image with the new key
+      if (imagePreview) {
+        localStorage.setItem(`${imageKey}_preview`, imagePreview)
+        if (image) {
+          localStorage.setItem(`${imageKey}_name`, image.name)
+          localStorage.setItem(`${imageKey}_type`, image.type)
+        }
+      }
 
-      // Start the timer - we only send metadata, not the actual image
-      await startTimer({
-        imageId: "local-only-image", // Just a placeholder, the actual image stays in localStorage
+      // Generate a UUID for the confirmation token
+      // This will be used in the verification link sent to the friend
+      const confirmationToken = crypto.randomUUID();
+      
+      // Save timer data to Supabase
+      const timerData = {
+        username: user.name,
+        imagekey: imageKey,
+        goaldescription: goalDescription,
         deadline: deadlineTimestamp,
-        friendEmail,
-        goalDescription,
-      })
+        friendemail: friendEmail,
+        confirmationtoken: confirmationToken,
+        isverified: false, // Default to unverified until friend confirms
+        createdat: new Date().toISOString() // Set creation time on client side
+      }
 
-      // Redirect to the timer page
-      router.push("/timer")
+      const result = await saveTimer(timerData)
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save timer data")
+      }
+
+      // Redirect to the timer page - no need to pass username in URL
+      // The timer will use the authenticated user's information
+      router.push('/timer')
     } catch (error) {
       console.error("Failed to start timer:", error)
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+      setSaveError(errorMessage)
+      toast({
+        title: "Error starting timer",
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }

@@ -3,6 +3,7 @@ import { Header } from "@/components/header"
 import { UploadForm } from "@/components/upload-form"
 import { AuthCheck } from "@/components/auth-check"
 import { Footer } from "@/components/footer"
+import { TimerChecker } from "@/components/timer-checker"
 import { Bath, Droplets, ShowerHeadIcon as Shower, Waves } from "lucide-react"
 
 export default function Home() {

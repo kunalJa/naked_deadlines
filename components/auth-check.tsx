@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
 import { Twitter } from "lucide-react"
 import Link from "next/link"
+import { TimerChecker } from "@/components/timer-checker"
 
 export function AuthCheck({ children }: { children: React.ReactNode }) {
   const { user, isLoading, signIn } = useAuth()
@@ -52,5 +53,5 @@ export function AuthCheck({ children }: { children: React.ReactNode }) {
     )
   }
 
-  return <>{children}</>
+  return <TimerChecker>{children}</TimerChecker>
 }

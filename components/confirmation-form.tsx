@@ -11,17 +11,27 @@ interface ConfirmationFormProps {
   token: string
 }
 
-// Mock data - in a real app this would come from the server
-const mockConfirmationData = {
-  userName: "John Doe",
-  goalDescription: "Complete my project proposal",
+// Define the interface for our confirmation data
+interface ConfirmationData {
+  userName: string;
+  goalDescription: string;
+  imageUrl: string;
+  deadline: number;
+  token: string;
+}
+
+// Initial data - will be replaced with data from the API
+const initialConfirmationData: ConfirmationData = {
+  userName: "Loading...",
+  goalDescription: "Loading...",
   imageUrl: "/placeholder.svg?height=400&width=400",
-  deadline: Date.now() + 2 * 60 * 60 * 1000, // 2 hours from now
+  deadline: Date.now() + 2 * 60 * 60 * 1000, // Placeholder
+  token: ""
 }
 
 export function ConfirmationForm({ token }: ConfirmationFormProps) {
   const [isLoading, setIsLoading] = useState(true)
-  const [confirmationData, setConfirmationData] = useState(mockConfirmationData)
+  const [confirmationData, setConfirmationData] = useState<ConfirmationData>(initialConfirmationData)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,19 +39,27 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
   useEffect(() => {
     const fetchConfirmationData = async () => {
       try {
-        // In a real app, this would fetch the confirmation data from the server
-        // const data = await getConfirmationData(token)
-        // setConfirmationData(data)
-
-        // For now, we'll use the mock data
+        setIsLoading(true)
+        // Fetch the timer data using the token
+        const response = await fetch(`/api/confirm?token=${encodeURIComponent(token)}`)
+        const result = await response.json()
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to fetch confirmation data')
+        }
+        
+        // Use the data from the API response
         setConfirmationData({
-          ...mockConfirmationData,
-          token: token, // Add the token to the confirmation data
+          userName: result.data.username,
+          goalDescription: result.data.goalDescription,
+          deadline: new Date(result.data.deadline).getTime(),
+          imageUrl: localStorage.getItem(`${result.data.imageKey}_preview`) || '/placeholder.svg',
+          token: token
         })
         setIsLoading(false)
       } catch (error) {
         console.error("Failed to fetch confirmation data:", error)
-        setError("Invalid or expired confirmation link")
+        setError(error instanceof Error ? error.message : "Invalid or expired confirmation link")
         setIsLoading(false)
       }
     }
@@ -54,12 +72,21 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
     setError(null) // Clear any previous errors
 
     try {
-      // In a real app, this would call the API to confirm the goal completion
-      await confirmGoalCompletion(token)
+      // Call our API endpoint to verify the timer
+      const response = await fetch(`/api/confirm?token=${encodeURIComponent(token)}`, {
+        method: 'PUT', // Use PUT to update the verification status
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to confirm goal completion')
+      }
+      
       setIsConfirmed(true)
     } catch (error) {
       console.error("Failed to confirm goal completion:", error)
-      setError("Failed to confirm goal completion. Please try again.")
+      setError(error instanceof Error ? error.message : "Failed to confirm goal completion. Please try again.")
       // Don't set isConfirmed to true if there was an error
     } finally {
       setIsConfirming(false)

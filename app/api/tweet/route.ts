@@ -124,7 +124,7 @@ async function uploadImageToTwitter(image: File, accessToken: string) {
     },
     body: JSON.stringify({
       media_category: "tweet_image", // For images
-      mime_type: image.type,
+      media_type: image.type,
       total_bytes: buffer.length
     })
   })
