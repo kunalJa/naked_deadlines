@@ -85,13 +85,39 @@ export async function deleteTimer(): Promise<TimerResponse> {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('Error deleting timer:', result.error);
       return { success: false, error: result.error };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Exception deleting timer:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
+/**
+ * Clean up a verified timer - delete from database and local storage
+ */
+export async function cleanupVerifiedTimer(imageKey: string): Promise<TimerResponse> {
+  try {
+    // First, delete the timer from Supabase
+    const deleteResult = await deleteTimer();
+    
+    if (!deleteResult.success) {
+      return deleteResult;
+    }
+    
+    // Then, clean up local storage
+    if (imageKey) {
+      localStorage.removeItem(`${imageKey}_preview`);
+      localStorage.removeItem(`${imageKey}_name`);
+      localStorage.removeItem(`${imageKey}_type`);
+    }
+    
+    return { success: true };
+  } catch (error) {
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error occurred'

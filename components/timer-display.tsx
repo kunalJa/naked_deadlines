@@ -8,10 +8,10 @@ import { ImagePreview } from "@/components/image-preview"
 import { Progress } from "@/components/ui/progress"
 import { Share2, AlertTriangle, Hourglass } from "lucide-react"
 import { ChickenOutModal } from "@/components/chicken-out-modal"
-import { getActiveTimer, deleteTimer } from "@/services/timer-service"
+import { SuccessCelebration } from "@/components/success-celebration"
+import { getActiveTimer, deleteTimer, cleanupVerifiedTimer } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
 import { useAuth } from "@/components/auth-provider"
-import { useToast } from "@/components/ui/use-toast"
 
 // Default confirmation URL (in a real app, this would be dynamically generated)
 const CONFIRMATION_BASE_URL = typeof window !== 'undefined' ? `${window.location.origin}/confirm` : ''
@@ -20,13 +20,12 @@ export function TimerDisplay() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
-  const { toast } = useToast()
   
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [progress, setProgress] = useState<number>(0)
   const [timerData, setTimerData] = useState<TimerData | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true) // Add loading state
   
   // No need to track timer data changes separately
   const [isChickenOutModalOpen, setIsChickenOutModalOpen] = useState(false)
@@ -51,6 +50,11 @@ export function TimerDisplay() {
         // Now we know result.data is not undefined
         setTimerData(result.data);
         
+        // Check if the timer is already verified
+        if (result.data.isverified) {
+          setShowSuccessCelebration(true);
+        }
+        
         // Load the image from local storage using the imagekey
         const imageKey = result.data?.imagekey;
         const storedImagePreview = imageKey ? localStorage.getItem(`${imageKey}_preview`) : null;
@@ -64,35 +68,21 @@ export function TimerDisplay() {
           // Use a placeholder image instead of failing
           setImagePreview('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTk5OTkiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=')
           
-          // Show a warning toast but don't block the timer
-          toast({
-            title: "Image Not Found",
-            description: "Your timer will continue, but the original image couldn't be loaded.",
-            variant: "default", // Changed from warning to default since warning isn't a valid variant
-          })
-          
           // We won't delete the timer from Supabase, allowing the user to continue
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to load timer'
         setError(errorMessage)
-        toast({
-          title: "Error loading timer",
-          description: errorMessage,
-          variant: "destructive",
-        })
-        
-        // Redirect to home page after a short delay if there's an error
-        setTimeout(() => {
-          router.push('/')
-        }, 3000)
+      } finally {
+        // Set loading to false regardless of success or failure
+        setIsLoading(false)
       }
     }
 
     fetchTimerData()
     // Empty dependency array means this effect runs once on mount
     // We include user as a dependency since we need it to be available
-  }, [user, router, toast])
+  }, [user, router])
 
   useEffect(() => {
     // Only run this effect when we have timer data
@@ -129,16 +119,12 @@ export function TimerDisplay() {
       if (remaining <= 0) {
         clearInterval(interval)
         // In a real app, this would trigger the tweet to be sent
-        toast({
-          title: "Time's up!",
-          description: "Your deadline has passed. Your image will be tweeted soon!",
-          variant: "destructive",
-        })
+        // Time's up - no toast notification
       }
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [timerData, toast])
+  }, [timerData])
 
   const formatTimeRemaining = () => {
     if (timeRemaining <= 0) return "00:00:00"
@@ -154,10 +140,65 @@ export function TimerDisplay() {
     ].join(":")
   }
 
+  // State for verification status message
+  const [statusMessage, setStatusMessage] = useState<{type: 'success' | 'error' | 'info' | null, message: string}>({
+    type: null,
+    message: ''
+  });
+
+  // State to track if we should show the success celebration view
+  const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
+
+  // Function to check if the timer has been verified by the friend
+  const checkVerificationStatus = async () => {
+    if (!timerData) return
+    
+    // Set status to loading
+    setStatusMessage({
+      type: 'info',
+      message: 'Checking verification status...'
+    });
+    
+    try {
+      // Call the API to get the latest timer data
+      const result = await getActiveTimer();
+      
+      if (result.success && result.data) {
+        // Update the timer data with the latest verification status
+        setTimerData(result.data);
+        
+        // Show celebration view if verified
+        if (result.data.isverified) {
+          setShowSuccessCelebration(true);
+        } else {
+          setStatusMessage({
+            type: 'info',
+            message: "Your friend hasn't verified your goal completion yet."
+          });
+        }
+      } else {
+        setStatusMessage({
+          type: 'error',
+          message: 'Could not check verification status.'
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to check verification status'
+      setStatusMessage({
+        type: 'error',
+        message: errorMessage
+      });
+    }
+  }
+  
   const handleShareLink = () => {
     if (!timerData) return
     
-    const confirmationUrl = `${CONFIRMATION_BASE_URL}/${timerData.username}`
+    // Use the confirmation token for the URL instead of username
+    const confirmationUrl = `${window.location.origin}/confirm/${timerData.confirmationtoken}`
+    
+    // Log the confirmation URL to the console for testing
+    console.log('Confirmation URL:', confirmationUrl)
     
     if (navigator.share) {
       navigator.share({
@@ -168,9 +209,11 @@ export function TimerDisplay() {
     } else {
       // Fallback for browsers that don't support navigator.share
       navigator.clipboard.writeText(confirmationUrl)
-      toast({
-        title: "Link copied!",
-        description: "Confirmation link copied to clipboard",
+      
+      // Update status message instead of toast
+      setStatusMessage({
+        type: 'success',
+        message: "Confirmation link copied to clipboard"
       })
     }
   }
@@ -183,8 +226,6 @@ export function TimerDisplay() {
     if (!timerData) return
     
     try {
-      setIsLoading(true)
-      
       // First, immediately clear the image from local storage to prevent accidental tweeting
       // even if there's an error with Supabase
       if (timerData.imagekey) {
@@ -202,38 +243,55 @@ export function TimerDisplay() {
       }
       
       setIsChickenOutModalOpen(false)
-      toast({
-        title: "Timer cancelled",
-        description: "You've chickened out! Your image is safe... for now.",
-      })
       
       // Redirect to home page
       router.push("/")
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel timer'
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
-      setIsLoading(false)
+      // Handle error silently without toast
+      console.error('Failed to cancel timer:', error)
+      setIsChickenOutModalOpen(false)
     }
   }
 
   // Render UI based on state
   
-  if (error) {
-    return (
-      <Card className="w-full border-4 border-destructive/30 rounded-xl shadow-xl">
-        <CardHeader className="bg-destructive/10 rounded-t-lg">
-          <CardTitle className="text-2xl font-extrabold text-center">⚠️ Error Loading Timer ⚠️</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 text-center">
-          <p>{error}</p>
-          <p className="mt-4">Redirecting to home page...</p>
-        </CardContent>
-      </Card>
-    )
+  // Function to check for new timers after deletion
+  const checkForNewTimers = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getActiveTimer();
+      
+      if (result.success && result.data) {
+        // Found a new active timer
+        setTimerData(result.data);
+        setShowSuccessCelebration(false);
+        
+        // Load the image from local storage
+        const imageKey = result.data?.imagekey;
+        const storedImagePreview = imageKey ? localStorage.getItem(`${imageKey}_preview`) : null;
+        if (storedImagePreview) {
+          setImagePreview(storedImagePreview);
+        }
+      } else {
+        // No new timer found
+        setTimerData(null);
+        setImagePreview(null);
+      }
+    } catch (error) {
+      // Handle error if needed
+      console.error('Error checking for new timers:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show success celebration if the goal has been verified
+  if (showSuccessCelebration && timerData) {
+    return <SuccessCelebration 
+      timerData={timerData} 
+      imagePreview={imagePreview} 
+      onTimerDeleted={checkForNewTimers} 
+    />
   }
   
   if (!timerData) {
@@ -263,13 +321,52 @@ export function TimerDisplay() {
     return "HURRY UP! Your photo is almost fully revealed! 😱"
   }
 
+  // Show loading state while fetching data
+  if (isLoading) {
+    return (
+      <Card className="w-full border-4 border-primary/30 rounded-xl shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
+          <CardTitle className="text-2xl font-extrabold text-center">Loading Timer...</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <div className="py-8 space-y-4 flex flex-col items-center">
+            <div className="h-12 w-12 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+            <p>Loading your timer data...</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  // If no timer data is found, show a message card instead of redirecting
+  if (!timerData && !error) {
+    return (
+      <Card className="w-full border-4 border-gray-300 rounded-xl shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
+          <CardTitle className="text-2xl font-extrabold text-center">No Active Timer</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <div className="py-8 space-y-4">
+            <p>You don't have any active timers right now.</p>
+            <Button
+              onClick={() => router.push('/')}
+              className="mt-4"
+            >
+              Create a New Goal
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
   return (
     <>
       <Card className="w-full border-4 border-primary/30 rounded-xl shadow-xl">
         <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
           <CardTitle className="text-2xl font-extrabold text-center">⏰ Tick Tock! The Curtain's Opening! ⏰</CardTitle>
           <CardDescription className="text-center text-base">
-            Goal: <span className="font-bold">{timerData.goaldescription}</span>
+            Goal: <span className="font-bold">{timerData?.goaldescription}</span>
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -294,6 +391,21 @@ export function TimerDisplay() {
                   need to verify your goal completion before the deadline!
                 </p>
                 
+                {statusMessage.type && (
+                  <div className={`mt-2 p-3 border-2 rounded-md ${
+                    statusMessage.type === 'success' ? 'border-green-400 bg-green-100 dark:bg-green-900/30' : 
+                    statusMessage.type === 'error' ? 'border-red-400 bg-red-100 dark:bg-red-900/30' : 
+                    'border-blue-400 bg-blue-100 dark:bg-blue-900/30'
+                  }`}>
+                    <p className="text-sm font-medium">
+                      {statusMessage.type === 'success' && '✅ '}
+                      {statusMessage.type === 'error' && '❌ '}
+                      {statusMessage.type === 'info' && 'ℹ️ '}
+                      {statusMessage.message}
+                    </p>
+                  </div>
+                )}
+                
                 <div className="p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
                   <p className="text-sm font-bold flex items-center">
                     <span className="mr-2">🔒</span>
@@ -311,14 +423,30 @@ export function TimerDisplay() {
                   </p>
                 </div>
 
-                <Button
-                  onClick={handleShareLink}
-                  variant="outline"
-                  className="w-full mt-2 gap-2 bounce-hover border-2 border-secondary"
-                >
-                  <Share2 className="h-4 w-4" />
-                  Share Confirmation Link With Your Friend!
-                </Button>
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    onClick={handleShareLink}
+                    variant="outline"
+                    className="flex-1 gap-2 bounce-hover border-2 border-secondary"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share Confirmation Link
+                  </Button>
+                  
+                  <Button
+                    onClick={checkVerificationStatus}
+                    variant="outline"
+                    className="gap-2 border-2 border-primary"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 2v6h-6"></path>
+                      <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                      <path d="M3 12a9 9 0 0 0 15 6.7L21 16"></path>
+                      <path d="M21 16v6h-6"></path>
+                    </svg>
+                    Refresh
+                  </Button>
+                </div>
               </div>
             </div>
 

@@ -51,9 +51,9 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
         // Use the data from the API response
         setConfirmationData({
           userName: result.data.username,
-          goalDescription: result.data.goalDescription,
+          goalDescription: result.data.goaldescription,
           deadline: new Date(result.data.deadline).getTime(),
-          imageUrl: localStorage.getItem(`${result.data.imageKey}_preview`) || '/placeholder.svg',
+          imageUrl: result.data.imagekey ? localStorage.getItem(`${result.data.imagekey}_preview`) || '/placeholder.svg' : '/placeholder.svg',
           token: token
         })
         setIsLoading(false)

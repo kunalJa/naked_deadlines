@@ -4,36 +4,14 @@ import { UploadForm } from "@/components/upload-form"
 import { AuthCheck } from "@/components/auth-check"
 import { Footer } from "@/components/footer"
 import { TimerChecker } from "@/components/timer-checker"
-import { Bath, Droplets, ShowerHeadIcon as Shower, Waves } from "lucide-react"
+import { BathroomDecorations } from "@/components/bathroom-decorations"
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 bathroom-background relative overflow-hidden">
-        {/* Decorative bathroom elements */}
-        <div className="absolute top-10 left-10 animate-float hidden md:block">
-          <Shower className="h-16 w-16 text-blue-400" />
-        </div>
-        <div className="absolute bottom-20 right-10 animate-float-delay hidden md:block">
-          <Bath className="h-16 w-16 text-pink-400" />
-        </div>
-        <div className="absolute top-40 right-20 animate-spin-slow hidden md:block">
-          <Droplets className="h-12 w-12 text-blue-300" />
-        </div>
-        <div className="absolute bottom-40 left-20 animate-bounce hidden md:block">
-          <Waves className="h-12 w-12 text-blue-300" />
-        </div>
-
-        {/* Rubber ducks */}
-        <div className="rubber-duck duck-1"></div>
-        <div className="rubber-duck duck-2"></div>
-        <div className="rubber-duck duck-3"></div>
-
-        {/* Water droplets */}
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div key={i} className={`water-drop drop-${i + 1}`}></div>
-        ))}
+        <BathroomDecorations />
 
         <div className="container mx-auto px-4 py-8 relative z-10">
           <section className="max-w-4xl mx-auto">

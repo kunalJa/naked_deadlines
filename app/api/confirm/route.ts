@@ -43,15 +43,14 @@ export async function GET(request: NextRequest) {
       data: data
     });
   } catch (error) {
-    console.error('Exception in confirmation process:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    console.error('Error in GET /api/confirm:', error);
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
 
 /**
  * PUT /api/confirm?token=xyz
- * Verifies a timer using the confirmation token
+ * Updates the timer to mark it as verified
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -64,14 +63,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Find the timer with this token
-    const { data, error } = await supabase
+    const { data: timer, error: findError } = await supabase
       .from(TIMERS_TABLE)
       .select('*')
       .eq('confirmationtoken', token)
       .single();
 
-    if (error) {
-      console.error('Error finding timer by token:', error);
+    if (findError) {
+      console.error('Error finding timer by token:', findError);
       return NextResponse.json({ 
         success: false, 
         error: 'Invalid or expired confirmation token' 
@@ -79,10 +78,12 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the timer to mark it as verified
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from(TIMERS_TABLE)
       .update({ isverified: true })
-      .eq('confirmationtoken', token);
+      .eq('confirmationtoken', token)
+      .select()
+      .single();
 
     if (updateError) {
       console.error('Error updating timer verification status:', updateError);
@@ -95,11 +96,10 @@ export async function PUT(request: NextRequest) {
     // Return success
     return NextResponse.json({ 
       success: true, 
-      message: 'Timer verified successfully' 
+      data: data
     });
   } catch (error) {
-    console.error('Exception in confirmation process:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    console.error('Error in PUT /api/confirm:', error);
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }

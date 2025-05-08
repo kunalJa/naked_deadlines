@@ -83,11 +83,26 @@ const config: Config = {
   				to: {
   					height: '0'
   				}
+  			},
+  			'float-bubble': {
+  				'0%': {
+  					transform: 'translateY(0) translateX(0) scale(1)',
+  					opacity: '0.8'
+  				},
+  				'50%': {
+  					transform: 'translateY(-20px) translateX(10px) scale(1.1)',
+  					opacity: '0.9'
+  				},
+  				'100%': {
+  					transform: 'translateY(0) translateX(0) scale(1)',
+  					opacity: '0.8'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'float-bubble': 'float-bubble 8s ease-in-out infinite'
   		}
   	}
   },
