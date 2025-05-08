@@ -14,7 +14,7 @@ import { FriendEmailForm } from "@/components/friend-email-form"
 import { Upload, Camera, Bomb, Twitter } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/components/auth-provider"
-import { saveTimer } from "@/services/timer-service"
+import { saveTimer, sendConfirmationEmail } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -230,6 +230,35 @@ export function UploadForm() {
 
       if (!result.success) {
         throw new Error(result.error || "Failed to save timer data")
+      }
+
+      // Send confirmation email to the friend
+      try {
+        const emailResult = await sendConfirmationEmail(timerData)
+        if (!emailResult.success) {
+          console.warn('Warning: Failed to send confirmation email:', emailResult.error)
+          // Show a warning toast but continue with the process
+          toast({
+            title: 'Timer created, but email not sent',
+            description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
+            variant: 'destructive'
+          });
+        } else {
+          // Show a success toast
+          toast({
+            title: 'Timer created!',
+            description: 'Your timer was created and we\'ve sent an email to your friend with the verification link.',
+            variant: 'default'
+          });
+        }
+      } catch (emailError) {
+        console.warn('Warning: Exception sending confirmation email:', emailError)
+        // Show a warning toast but continue with the process
+        toast({
+          title: 'Timer created, but email not sent',
+          description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
+          variant: 'destructive'
+        });
       }
 
       // Redirect to the timer page - no need to pass username in URL

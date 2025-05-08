@@ -1,5 +1,42 @@
 import { TimerData, TimerResponse } from '@/types/timer';
 
+interface EmailResponse {
+  success: boolean;
+  error?: string;
+  messageId?: string;
+}
+
+/**
+ * Send a confirmation email to a friend after creating a timer
+ */
+export async function sendConfirmationEmail(timerData: TimerData): Promise<EmailResponse> {
+  try {
+    // Call the API route to send the confirmation email
+    const response = await fetch('/api/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ timerData }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Error sending confirmation email:', result.error);
+      return { success: false, error: result.error };
+    }
+
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    console.error('Exception sending confirmation email:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
+
 /**
  * Save a new timer using the API route
  */
