@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ConfirmationForm } from "@/components/confirmation-form"
+import { BathroomDecorations } from "@/components/bathroom-decorations"
 
 interface ConfirmationPageProps {
   params: {
@@ -9,13 +10,16 @@ interface ConfirmationPageProps {
   }
 }
 
-export default function ConfirmationPage({ params }: ConfirmationPageProps) {
-  const { token } = params
+export default async function ConfirmationPage({ params }: ConfirmationPageProps) {
+  const { token } = await params
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col relative overflow-hidden">
+      {/* Add bathroom decorations */}
+      <BathroomDecorations />
+      
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8 relative z-10">
         <section className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Confirm Goal Completion</h1>

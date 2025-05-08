@@ -293,25 +293,6 @@ export function TimerDisplay() {
       onTimerDeleted={checkForNewTimers} 
     />
   }
-  
-  if (!timerData) {
-    return (
-      <Card className="w-full border-4 border-primary/30 rounded-xl shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
-          <CardTitle className="text-2xl font-extrabold text-center">No Active Timer Found</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 text-center">
-          <p>You don't have any active timers. Create a new one to get started!</p>
-          <Button 
-            onClick={() => router.push('/')}
-            className="mt-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-          >
-            Create New Timer
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
 
   // Calculate a fun message based on progress
   const getProgressMessage = () => {
@@ -339,139 +320,137 @@ export function TimerDisplay() {
   }
   
   // If no timer data is found, show a message card instead of redirecting
-  if (!timerData && !error) {
+  if (!timerData) {
     return (
-      <Card className="w-full border-4 border-gray-300 rounded-xl shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-t-lg">
-          <CardTitle className="text-2xl font-extrabold text-center">No Active Timer</CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 text-center">
-          <div className="py-8 space-y-4">
-            <p>You don't have any active timers right now.</p>
-            <Button
-              onClick={() => router.push('/')}
-              className="mt-4"
-            >
-              Create a New Goal
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-  
-  return (
-    <>
       <Card className="w-full border-4 border-primary/30 rounded-xl shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
-          <CardTitle className="text-2xl font-extrabold text-center">⏰ Tick Tock! The Curtain's Opening! ⏰</CardTitle>
-          <CardDescription className="text-center text-base">
-            Goal: <span className="font-bold">{timerData?.goaldescription}</span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-6">
-              <div className="space-y-2 bg-accent/20 p-4 rounded-lg">
-                <h3 className="text-xl font-bold flex items-center gap-2">
-                  <Hourglass className="h-5 w-5 text-primary animate-pulse" />
-                  Time Remaining
-                </h3>
-                <div className="text-5xl font-bold tabular-nums text-center py-4 bg-white dark:bg-black rounded-lg shadow-inner">
-                  {formatTimeRemaining()}
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
+        <CardTitle className="text-2xl font-extrabold text-center">No Active Timer Found</CardTitle>
+      </CardHeader>
+      <CardContent className="p-6 text-center">
+        <p>You don't have any active timers. Create a new one to get started!</p>
+        <Button 
+          onClick={() => router.push('/')}
+          className="mt-4 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+        >
+          Create New Timer
+        </Button>
+      </CardContent>
+    </Card>
+    )
+  } else {
+    return (
+      <>
+        <Card className="w-full border-4 border-primary/30 rounded-xl shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-t-lg">
+            <CardTitle className="text-2xl font-extrabold text-center">⏰ Tick Tock! The Curtain's Opening! ⏰</CardTitle>
+            <CardDescription className="text-center text-base">
+              Goal: <span className="font-bold">{timerData?.goaldescription}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="space-y-2 bg-accent/20 p-4 rounded-lg">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <Hourglass className="h-5 w-5 text-primary animate-pulse" />
+                    Time Remaining
+                  </h3>
+                  <div className="text-5xl font-bold tabular-nums text-center py-4 bg-white dark:bg-black rounded-lg shadow-inner">
+                    {formatTimeRemaining()}
+                  </div>
+                  <Progress value={progress} className="h-4 bg-secondary/30" />
+                  <p className="text-center font-medium text-primary mt-2">{getProgressMessage()}</p>
                 </div>
-                <Progress value={progress} className="h-4 bg-secondary/30" />
-                <p className="text-center font-medium text-primary mt-2">{getProgressMessage()}</p>
-              </div>
-
-              <div className="space-y-2 bg-primary/20 p-4 rounded-lg">
-                <h3 className="text-xl font-bold">Verification Status</h3>
-                <p className="text-sm">
-                  We've sent a confirmation link to <span className="font-bold">{timerData.friendemail}</span>. They
-                  need to verify your goal completion before the deadline!
-                </p>
-                
-                {statusMessage.type && (
-                  <div className={`mt-2 p-3 border-2 rounded-md ${
-                    statusMessage.type === 'success' ? 'border-green-400 bg-green-100 dark:bg-green-900/30' : 
-                    statusMessage.type === 'error' ? 'border-red-400 bg-red-100 dark:bg-red-900/30' : 
-                    'border-blue-400 bg-blue-100 dark:bg-blue-900/30'
-                  }`}>
-                    <p className="text-sm font-medium">
-                      {statusMessage.type === 'success' && '✅ '}
-                      {statusMessage.type === 'error' && '❌ '}
-                      {statusMessage.type === 'info' && 'ℹ️ '}
-                      {statusMessage.message}
+  
+                <div className="space-y-2 bg-primary/20 p-4 rounded-lg">
+                  <h3 className="text-xl font-bold">Verification Status</h3>
+                  <p className="text-sm">
+                    We've sent a confirmation link to <span className="font-bold">{timerData.friendemail}</span>. They
+                    need to verify your goal completion before the deadline!
+                  </p>
+                  
+                  {statusMessage.type && (
+                    <div className={`mt-2 p-3 border-2 rounded-md ${
+                      statusMessage.type === 'success' ? 'border-green-400 bg-green-100 dark:bg-green-900/30' : 
+                      statusMessage.type === 'error' ? 'border-red-400 bg-red-100 dark:bg-red-900/30' : 
+                      'border-blue-400 bg-blue-100 dark:bg-blue-900/30'
+                    }`}>
+                      <p className="text-sm font-medium">
+                        {statusMessage.type === 'success' && '✅ '}
+                        {statusMessage.type === 'error' && '❌ '}
+                        {statusMessage.type === 'info' && 'ℹ️ '}
+                        {statusMessage.message}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
+                    <p className="text-sm font-bold flex items-center">
+                      <span className="mr-2">🔒</span>
+                      Your photo is stored ONLY in your browser.
+                    </p>
+                    <p className="text-xs mt-1">
+                      For privacy, your image remains local until deadline expiration. It will only be uploaded if you fail to complete your goal in time.
                     </p>
                   </div>
-                )}
-                
-                <div className="p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
-                  <p className="text-sm font-bold flex items-center">
-                    <span className="mr-2">🔒</span>
-                    Your photo is stored ONLY in your browser.
-                  </p>
-                  <p className="text-xs mt-1">
-                    For privacy, your image remains local until deadline expiration. It will only be uploaded if you fail to complete your goal in time.
-                  </p>
-                </div>
-
-                <div className="flex items-center p-3 border-2 border-yellow-400 rounded-md bg-yellow-100 dark:bg-yellow-900/30">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
-                  <p className="text-sm font-bold">
-                    You can't stop this timer yourself! Only your friend can save you! 😈
-                  </p>
-                </div>
-
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    onClick={handleShareLink}
-                    variant="outline"
-                    className="flex-1 gap-2 bounce-hover border-2 border-secondary"
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Share Confirmation Link
-                  </Button>
-                  
-                  <Button
-                    onClick={checkVerificationStatus}
-                    variant="outline"
-                    className="gap-2 border-2 border-primary"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 2v6h-6"></path>
-                      <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-                      <path d="M3 12a9 9 0 0 0 15 6.7L21 16"></path>
-                      <path d="M21 16v6h-6"></path>
-                    </svg>
-                    Refresh
-                  </Button>
+  
+                  <div className="flex items-center p-3 border-2 border-yellow-400 rounded-md bg-yellow-100 dark:bg-yellow-900/30">
+                    <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
+                    <p className="text-sm font-bold">
+                      You can't stop this timer yourself! Only your friend can save you! 😈
+                    </p>
+                  </div>
+  
+                  <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                    <Button
+                      onClick={handleShareLink}
+                      variant="outline"
+                      className="w-full gap-2 bounce-hover border-2 border-secondary"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      Copy Confirmation Link
+                    </Button>
+                    
+                    <Button
+                      onClick={checkVerificationStatus}
+                      variant="outline"
+                      className="w-full sm:w-auto gap-2 border-2 border-primary"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 2v6h-6"></path>
+                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                        <path d="M3 12a9 9 0 0 0 15 6.7L21 16"></path>
+                        <path d="M21 16v6h-6"></path>
+                      </svg>
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </div>
+  
+              <div className="flex flex-col items-center justify-center">
+                <ImagePreview imageUrl={imagePreview || '/placeholder.svg?height=400&width=400'} progress={progress} showTowel={true} />
+              </div>
             </div>
-
-            <div className="flex flex-col items-center justify-center">
-              <ImagePreview imageUrl={imagePreview || '/placeholder.svg?height=400&width=400'} progress={progress} showTowel={true} />
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-b-lg p-6 flex justify-between">
-          <Button variant="outline" className="font-bold" onClick={handleChickenOut}>
-            Chicken Out 🐔
-          </Button>
-          <p className="text-sm font-medium text-center">
-            {timeRemaining > 0
-              ? "Complete your goal and have your friend confirm it before the curtain fully opens! 🚿"
-              : "Time's up! Your image has been tweeted for all to see! 🙈"}
-          </p>
-        </CardFooter>
-      </Card>
-
-      <ChickenOutModal
-        isOpen={isChickenOutModalOpen}
-        onClose={() => setIsChickenOutModalOpen(false)}
-        onConfirm={handleConfirmChickenOut}
-      />
-    </>
-  )
+          </CardContent>
+          <CardFooter className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-b-lg p-6 flex justify-between">
+            <Button variant="outline" className="font-bold" onClick={handleChickenOut}>
+              Chicken Out 🐔
+            </Button>
+            <p className="text-sm font-medium text-center">
+              {timeRemaining > 0
+                ? "Complete your goal and have your friend confirm it before the curtain fully opens! 🚿"
+                : "Time's up! Your image has been tweeted for all to see! 🙈"}
+            </p>
+          </CardFooter>
+        </Card>
+  
+        <ChickenOutModal
+          isOpen={isChickenOutModalOpen}
+          onClose={() => setIsChickenOutModalOpen(false)}
+          onConfirm={handleConfirmChickenOut}
+        />
+      </>
+    )
+  }
 }

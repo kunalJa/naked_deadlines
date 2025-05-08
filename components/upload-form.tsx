@@ -167,8 +167,8 @@ export function UploadForm() {
     }
 
     try {
-      if (!user?.name) {
-        throw new Error("You must be logged in to start a timer")
+      if (!user?.twitterHandle) {
+        throw new Error("You must be logged in with Twitter to start a timer")
       }
 
       // Calculate the deadline timestamp
@@ -193,7 +193,7 @@ export function UploadForm() {
       // We're keeping the image entirely local to the browser
       // No image data is ever sent to the server for privacy reasons
       // Generate a unique key for the image in local storage
-      const imageKey = `nakedDeadlines_${user.name}_${Date.now()}`
+      const imageKey = `nakedDeadlines_${user.twitterHandle}_${Date.now()}`
       
       // Save the current image with the new key
       if (imagePreview) {
@@ -208,9 +208,15 @@ export function UploadForm() {
       // This will be used in the verification link sent to the friend
       const confirmationToken = crypto.randomUUID();
       
+      // Check if we have a Twitter handle
+      if (!user.twitterHandle) {
+        throw new Error("Twitter handle not available. Please try logging in again.")
+      }
+      
       // Save timer data to Supabase
       const timerData = {
-        username: user.name,
+        // Use only the Twitter handle for username
+        username: user.twitterHandle,
         imagekey: imageKey,
         goaldescription: goalDescription,
         deadline: deadlineTimestamp,

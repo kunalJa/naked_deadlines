@@ -5,6 +5,7 @@ import { AuthCheck } from "@/components/auth-check"
 import { Footer } from "@/components/footer"
 import { TimerChecker } from "@/components/timer-checker"
 import { BathroomDecorations } from "@/components/bathroom-decorations"
+import { ActiveTimerRedirect } from "@/components/active-timer-redirect"
 
 export default function Home() {
   return (
@@ -27,7 +28,9 @@ export default function Home() {
 
             <Suspense fallback={<div className="h-96 flex items-center justify-center">Loading...</div>}>
               <AuthCheck>
-                <UploadForm />
+                <ActiveTimerRedirect>
+                  <UploadForm />
+                </ActiveTimerRedirect>
               </AuthCheck>
             </Suspense>
           </section>

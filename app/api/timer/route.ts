@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { createClient } from '@supabase/supabase-js';
 import { TimerData } from '@/types/timer';
 
@@ -13,9 +14,12 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper function to get the current user from the session
 async function getCurrentUser() {
-  const session = await getServerSession();
-  if (!session?.user?.name) {
-    throw new Error('Not authenticated');
+  // Pass authOptions to getServerSession to ensure custom session properties are available
+  const session = await getServerSession(authOptions);
+  
+  // Check for Twitter handle instead of name
+  if (!session?.user?.twitterHandle) {
+    throw new Error('Not authenticated with Twitter');
   }
   return session.user;
 }
@@ -25,11 +29,11 @@ export async function GET() {
   try {
     const user = await getCurrentUser();
     
-    // Get the timer data from Supabase
+    // Get the timer data from Supabase using Twitter handle
     const { data, error } = await supabase
       .from(TIMERS_TABLE)
       .select('*')
-      .eq('username', user.name)
+      .eq('username', user.twitterHandle)
       .single();
 
     if (error) {
@@ -52,7 +56,7 @@ export async function GET() {
       await supabase
         .from(TIMERS_TABLE)
         .delete()
-        .eq('username', user.name);
+        .eq('username', user.twitterHandle);
         
       return NextResponse.json({ success: false, error: 'Timer has expired' }, { status: 404 });
     }
@@ -80,16 +84,16 @@ export async function POST(request: NextRequest) {
     console.log('Timer data received:', body);
     
     // Add user and creation timestamp
-    // Ensure user.name is defined
-    if (!user.name) {
-      return NextResponse.json({ success: false, error: 'User name is required' }, { status: 400 });
+    // Ensure user.twitterHandle is defined
+    if (!user.twitterHandle) {
+      return NextResponse.json({ success: false, error: 'Twitter handle is required' }, { status: 400 });
     }
     
     // Use the client-provided confirmationToken or generate one if not provided
     const confirmationToken = body.confirmationtoken || crypto.randomUUID();
     
     const timerData: TimerData = {
-      username: user.name,
+      username: user.twitterHandle, // Use Twitter handle instead of name
       imagekey: body.imagekey,
       goaldescription: body.goaldescription,
       deadline: body.deadline,
@@ -103,7 +107,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase
       .from(TIMERS_TABLE)
       .upsert(timerData)
-      .eq('username', user.name);
+      .eq('username', user.twitterHandle);
 
     if (error) {
       console.error('Error saving timer:', error);
@@ -126,7 +130,7 @@ export async function DELETE() {
     const { error } = await supabase
       .from(TIMERS_TABLE)
       .delete()
-      .eq('username', user.name);
+      .eq('username', user.twitterHandle);
 
     if (error) {
       console.error('Error deleting timer:', error);

@@ -9,10 +9,9 @@ import type { Session } from "next-auth"
 // Define the user type
 type User = {
   id?: string;
-  name: string;
+  twitterHandle: string; // Required field, no longer optional
   email?: string;
   image?: string;
-  twitterHandle?: string;
 } | null;
 
 type AuthContextType = {
@@ -34,15 +33,18 @@ function AuthProviderContent({ children }: { children: React.ReactNode }) {
   const isLoading = status === "loading"
   
   // Map the session user to our User type
-  const user: User = session?.user ? {
-    // In NextAuth v4, user.id might not be available by default
-    // We can use a unique identifier based on available data
-    id: session.user.email || "user-id",
-    name: session.user.name || "User",
-    email: session.user.email || undefined,
-    image: session.user.image || undefined,
-    twitterHandle: (session.user as any).twitterHandle,
-  } : null
+  let user: User = null
+  
+  if (session?.user && (session.user as any).twitterHandle) {
+    user = {
+      // In NextAuth v4, user.id might not be available by default
+      // We can use a unique identifier based on available data
+      id: session.user.email || "user-id",
+      twitterHandle: (session.user as any).twitterHandle,
+      email: session.user.email || undefined,
+      image: session.user.image || undefined,
+    }
+  }
 
   const handleSignIn = async () => {
     await nextAuthSignIn("twitter")
