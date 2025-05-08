@@ -129,15 +129,34 @@ export function TimerDisplay() {
   const formatTimeRemaining = () => {
     if (timeRemaining <= 0) return "00:00:00"
 
-    const hours = Math.floor(timeRemaining / (1000 * 60 * 60))
-    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000)
+    // Calculate time units
+    const totalSeconds = Math.floor(timeRemaining / 1000)
+    const totalMinutes = Math.floor(totalSeconds / 60)
+    const totalHours = Math.floor(totalMinutes / 60)
+    const totalDays = Math.floor(totalHours / 24)
+    const weeks = Math.floor(totalDays / 7)
+    
+    // Calculate remaining units after extracting larger units
+    const days = totalDays % 7
+    const hours = totalHours % 24
+    const minutes = totalMinutes % 60
+    const seconds = totalSeconds % 60
 
-    return [
-      hours.toString().padStart(2, "0"),
-      minutes.toString().padStart(2, "0"),
-      seconds.toString().padStart(2, "0"),
-    ].join(":")
+    // Format based on the largest unit present
+    if (weeks > 0) {
+      // Format: XwXd XX:XX:XX
+      return `${weeks}w${days}d ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    } else if (days > 0) {
+      // Format: Xd XX:XX:XX
+      return `${days}d ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    } else {
+      // Format: XX:XX:XX (hours:minutes:seconds)
+      return [
+        hours.toString().padStart(2, "0"),
+        minutes.toString().padStart(2, "0"),
+        seconds.toString().padStart(2, "0"),
+      ].join(":")
+    }
   }
 
   // State for verification status message

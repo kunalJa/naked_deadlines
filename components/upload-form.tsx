@@ -377,6 +377,11 @@ export function UploadForm() {
                             onChange={(e) => setDeadline(e.target.value)}
                             min={new Date().toISOString().split("T")[0]}
                             className="flex-1"
+                            onClick={(e) => {
+                              // This ensures the native date picker opens on mobile when clicking anywhere in the input
+                              const input = e.target as HTMLInputElement;
+                              input.showPicker && input.showPicker();
+                            }}
                           />
                         </div>
                         <div className="flex-1">
