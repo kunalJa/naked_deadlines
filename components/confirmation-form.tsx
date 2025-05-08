@@ -226,6 +226,26 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
                 If you confirm that {confirmationData.userName} has completed their goal, the photo will not be tweeted.
                 If you don't confirm before the deadline, the photo will be automatically tweeted from their account.
               </p>
+              
+              <div className="mt-4">
+                <Button 
+                  onClick={handleConfirm} 
+                  disabled={isConfirming} 
+                  className="gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 px-8 text-lg shadow-lg w-full animate-pulse hover:animate-none transition-all duration-700 transform hover:scale-105 border-2 border-green-300"
+                >
+                  {isConfirming ? 
+                    <span className="flex items-center justify-center">
+                      <span className="mr-2 animate-spin h-5 w-5 border-4 border-white border-t-transparent rounded-full"></span>
+                      Confirming...
+                    </span> : 
+                    <span className="flex items-center justify-center">
+                      <span className="mr-2 text-xl">✅</span>
+                      Confirm Goal Completion!
+                      <CheckCircle2 className="h-5 w-5 ml-2" />
+                    </span>
+                  }
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -239,8 +259,8 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between items-center relative z-10">
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <CardFooter className="flex flex-col sm:flex-row gap-3 justify-center items-center relative z-10">
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
           <Button variant="outline" className="gap-2 border-blue-300 hover:bg-blue-100" onClick={() => window.open('/', '_blank')}>
             <Home className="h-4 w-4" />
             Create Your Own Naked Deadline!
@@ -256,11 +276,6 @@ export function ConfirmationForm({ token }: ConfirmationFormProps) {
             Tweet About Your Power 😈
           </Button>
         </div>
-        
-        <Button onClick={handleConfirm} disabled={isConfirming} className="gap-2 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-          {isConfirming ? "Confirming..." : "Confirm Goal Completion"}
-          <CheckCircle2 className="h-4 w-4" />
-        </Button>
       </CardFooter>
     </Card>
   )

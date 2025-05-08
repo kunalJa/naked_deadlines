@@ -92,7 +92,7 @@ export function SuccessCelebration({ timerData, imagePreview, onTimerDeleted }: 
       
       <CardHeader className="bg-gradient-to-r from-blue-400/30 to-blue-600/30 rounded-t-lg relative z-10">
         <div className="absolute top-0 left-0 w-full h-full bg-blue-500/10 z-0" />
-        <CardTitle className="text-3xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400 relative z-10">
+        <CardTitle className="text-3xl font-extrabold text-center bg-clip-text relative z-10">
           🎉 Congratulations! 🎉
         </CardTitle>
         <CardDescription className="text-center text-lg font-medium relative z-10">
@@ -101,15 +101,6 @@ export function SuccessCelebration({ timerData, imagePreview, onTimerDeleted }: 
       </CardHeader>
       <CardContent className="p-6 text-center relative z-10 bg-gradient-to-b from-blue-50/50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20">
         {/* More bathroom elements */}
-        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 text-blue-400/30 animate-bounce z-0">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 22h4" />
-            <path d="M15 2c-1.3 0-2.5.9-2.8 2.2l-2.7 11C9.2 16.9 8 17.8 6.7 17.8" />
-            <path d="M5 17.8c-1.3 0-2.5.8-2.8 2.2" />
-            <path d="M15 2c1.3 0 2.5.8 2.8 2.2l2.7 11c.3 1.3 1.5 2.2 2.8 2.2" />
-          </svg>
-        </div>
-        
         <div className="py-6 space-y-6">
           <div className="relative w-full max-w-xs mx-auto h-40 overflow-hidden rounded-lg shadow-md border-4 border-blue-300/50">
             {/* Water ripple effect */}
