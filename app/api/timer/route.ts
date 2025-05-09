@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Log the request body for debugging
-    console.log('Timer data received:', body);
+    // // Log the request body for debugging
+    // console.log('Timer data received:', body);
     
     // Add user and creation timestamp
     // Ensure user.twitterHandle is defined
