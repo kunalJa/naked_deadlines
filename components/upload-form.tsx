@@ -32,8 +32,6 @@ export function UploadForm() {
   const [goalDescription, setGoalDescription] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState<string>("date")
-  const [isTweeting, setIsTweeting] = useState(false)
-  const [tweetResult, setTweetResult] = useState<{ success: boolean; message: string } | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const { user } = useAuth()
   const { toast } = useToast()
@@ -92,62 +90,6 @@ export function UploadForm() {
     // Trigger the hidden file input when the button is clicked
     if (fileInputRef.current) {
       fileInputRef.current.click()
-    }
-  }
-
-  const handleTestTweet = async () => {
-    if (!image) {
-      setTweetResult({ success: false, message: "Please upload an image first" })
-      return
-    }
-    
-    setIsTweeting(true)
-    setTweetResult(null)
-    
-    try {
-      const formData = new FormData()
-      formData.append("image", image)
-      formData.append("message", `Test tweet 🙈 #productivity`)
-      
-      const response = await fetch("/api/tweet", {
-        method: "POST",
-        body: formData
-      })
-      
-      // Check for 401 Unauthorized response
-      if (response.status === 401) {
-        console.log('Authentication token expired. Logging out and redirecting...');
-        setTweetResult({ 
-          success: false, 
-          message: 'Your login session has expired. Please sign in again to complete this action.' 
-        });
-        
-        // Handle expired session properly by signing out and redirecting with query param
-        setTimeout(async () => {
-          await signOut({ redirect: false });
-          router.push('/?session_expired=true');
-        }, 2000);
-        
-        return;
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to tweet: ${response.status}`)
-      }
-      
-      const result = await response.json()
-      setTweetResult({ 
-        success: true, 
-        message: `Tweet posted successfully! Tweet ID: ${result.tweetId}` 
-      })
-    } catch (error) {
-      console.error("Error sending test tweet:", error)
-      setTweetResult({ 
-        success: false, 
-        message: `Failed to tweet: ${error instanceof Error ? error.message : String(error)}` 
-      })
-    } finally {
-      setIsTweeting(false)
     }
   }
 
@@ -523,45 +465,6 @@ export function UploadForm() {
           </div>
         </form>
       </CardContent>
-      {/* Test Tweet Button */}
-      {user && image && (
-        <div className="mt-4 p-4 border-t border-dashed border-primary/30">
-          <div className="flex flex-col items-center">
-            <p className="text-sm font-medium mb-2">Test the Twitter integration:</p>
-            <Button 
-              type="button" 
-              onClick={handleTestTweet} 
-              disabled={isTweeting || !image} 
-              variant="outline"
-              className="gap-2 relative"
-            >
-              {isTweeting ? (
-                <>
-                  <span className="opacity-0">Test Tweet This Image</span>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                      <span>Posting...</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <Twitter className="h-4 w-4" />
-                  Test Tweet This Image
-                </>
-              )}
-            </Button>
-            
-            {tweetResult && (
-              <div className={`mt-2 p-2 rounded text-sm ${tweetResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {tweetResult.message}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
       <CardFooter className="flex justify-end bg-gradient-to-r from-primary/10 to-secondary/10 rounded-b-lg p-6">
         <Button
           onClick={handleSubmit}
