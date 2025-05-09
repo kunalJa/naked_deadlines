@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, Suspense } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 
 // Create a context to manage loading state globally
@@ -23,6 +23,16 @@ export function useLoading() {
 
 // Provider component for the loading context
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={null}>
+      <LoadingProviderInner>
+        {children}
+      </LoadingProviderInner>
+    </Suspense>
+  );
+}
+
+function LoadingProviderInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
