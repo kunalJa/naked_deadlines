@@ -106,12 +106,12 @@ export async function getActiveTimer(): Promise<TimerResponse> {
         'Content-Type': 'application/json',
       },
     });
-    console.log('getActiveTimer: API response status:', response.status);
+    // console.log('getActiveTimer: API response status:', response.status);
 
     if (!response.ok) {
       // If it's a 404, it means there's no active timer
       if (response.status === 404) {
-        console.log('getActiveTimer: No active timer found');
+        // console.log('getActiveTimer: No active timer found');
         return { 
           success: true, 
           data: undefined,
@@ -128,7 +128,7 @@ export async function getActiveTimer(): Promise<TimerResponse> {
     }
 
     const result = await response.json();
-    console.log('getActiveTimer: Timer data received:', result.data);
+    // console.log('getActiveTimer: Timer data received:', result.data);
     return { 
       success: true, 
       data: result.data,

@@ -50,7 +50,7 @@ export function TimerDisplay() {
       
       // If no session exists or the session is empty, consider token expired
       if (!session || Object.keys(session).length === 0 || !session.user) {
-        console.log('Session expired or not found');
+        // Debug log - remove in production
         return true; // Token is expired or invalid
       }
       
@@ -61,21 +61,21 @@ export function TimerDisplay() {
         
         // If the expiry time is in the past, the token is expired
         if (expiryTime <= currentTime) {
-          console.log('Session has expired based on timestamp');
+          // Debug log - remove in production
           return true;
         }
       }
       
       return false; // Token is valid
     } catch (error) {
-      console.error('Error checking JWT expiration:', error);
+      // console.error('Error checking JWT expiration:', error);
       return true; // Assume expired on error
     }
   };
   
   // Handle session expiration
   const handleSessionExpired = async () => {
-    console.log('Handling expired session...');
+    // console.log('Handling expired session...');
     setIsTweeting(false)
     // Use the signOut function from auth provider to properly log the user out
     try {
@@ -84,7 +84,7 @@ export function TimerDisplay() {
       await signOut({ redirect: false });
       router.push('/?session_expired=true');
     } catch (error) {
-      console.error('Error signing out:', error);
+      // console.error('Error signing out:', error);
       // Fallback in case signOut fails
       router.push('/?session_expired=true');
     }
@@ -171,11 +171,11 @@ export function TimerDisplay() {
   useEffect(() => {
     // Only run this effect when we have timer data
     if (!timerData) {
-      console.log('Skipping timer calculation - no timer data');
+      // Debug log - remove in production
       return;
     }
 
-    console.log('Starting timer calculation with data:', timerData);
+    // Debug log - remove in production
 
     // Convert ISO strings to Date objects and then to timestamps
     const deadlineDate = new Date(timerData.deadline)
@@ -296,7 +296,7 @@ export function TimerDisplay() {
       
       // Check for authentication errors (401 Unauthorized)
       if (response2.status === 401) {
-        console.log('Authentication token expired. Logging out and redirecting...');
+        // Debug log - remove in production
         setStatusMessage({
           type: 'error',
           message: 'Your login session has expired. Please sign in again to complete this action.'
@@ -327,10 +327,10 @@ export function TimerDisplay() {
       
       // Delete the timer from the database after successful tweet
       try {
-        console.log('Deleting timer after successful tweet...');
+        // Debug log - remove in production
         const deleteResult = await deleteTimer();
         if (deleteResult.success) {
-          console.log('Timer deleted successfully after tweeting');
+          // Debug log - remove in production
           
           // Clear local storage data
           if (typeof window !== 'undefined') {
@@ -418,7 +418,7 @@ export function TimerDisplay() {
     const confirmationUrl = `${window.location.origin}/confirm/${timerData.confirmationtoken}`
     
     // Log the confirmation URL to the console for testing
-    console.log('Confirmation URL:', confirmationUrl)
+    // Debug log - remove in production
     
     if (navigator.share) {
       navigator.share({
@@ -452,7 +452,7 @@ export function TimerDisplay() {
         localStorage.removeItem(`${timerData.imagekey}_preview`)
         localStorage.removeItem(`${timerData.imagekey}_name`)
         localStorage.removeItem(`${timerData.imagekey}_type`)
-        console.log('Successfully deleted local image data')
+        // Debug log - remove in production
       }
       
       // Then delete the timer from Supabase

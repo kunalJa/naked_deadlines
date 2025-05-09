@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         console.log("Attempting direct media upload (file size: " + image.size + " bytes)")
         mediaId = await uploadMediaDirect(image, accessToken)
       } catch (uploadError) {
-        console.error("Direct upload failed, falling back to chunked upload:", uploadError)
+        // console.error("Direct upload failed, falling back to chunked upload:", uploadError)
         throw uploadError
         // Fall back to chunked upload if direct upload fails
         // mediaId = await uploadImageToTwitter(image, accessToken)
