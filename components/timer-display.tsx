@@ -139,10 +139,18 @@ export function TimerDisplay() {
           // Image exists, continue with the timer
           setImagePreview(storedImagePreview)
         } else {
-          // Image doesn't exist, but we'll continue anyway with a placeholder
+          // Image doesn't exist, but we'll continue with the default embarrass image
           
-          // Use a placeholder image instead of failing
-          setImagePreview('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTk5OTkiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=')
+          // Use the default embarrass image
+          const embarrassImageUrl = '/images/embarass.jpg'
+          setImagePreview(embarrassImageUrl)
+          
+          // Save to localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_preview`, embarrassImageUrl)
+            localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_name`, 'embarass.jpg')
+            localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_type`, 'image/jpeg')
+          }
           
           // We won't delete the timer from Supabase, allowing the user to continue
         }
@@ -602,7 +610,7 @@ export function TimerDisplay() {
                       Your photo is stored ONLY in your browser.
                     </p>
                     <p className="text-xs mt-1">
-                      For privacy, your image remains local until deadline expiration. It will only be uploaded if you fail to complete your goal in time.
+                      For privacy, your image remains local until deadline expiration. It will only be uploaded if you fail to complete your goal in time. If you see the default image, that is because we don't store your image on our servers, it was on your browser but has been deleted.
                     </p>
                   </div>
   
