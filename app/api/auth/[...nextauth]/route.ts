@@ -45,6 +45,10 @@ export const authOptions = {
   secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
   },
   callbacks: {
     async jwt({ token, account, profile }: { token: Token; account: any; profile?: any }) {

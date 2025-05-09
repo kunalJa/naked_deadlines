@@ -1,8 +1,8 @@
 import { TimerData } from '@/types/timer';
 
-interface EmailResponse {
-  success: boolean;
-  error?: string;
+import { ServiceResponse } from './timer-service';
+
+interface EmailResponse extends ServiceResponse {
   messageId?: string;
 }
 
@@ -202,14 +202,16 @@ Thank you for helping them stay accountable!
 
     return {
       success: true,
+      status: 200, // Default to OK for successful responses
       // The response structure might vary, so we handle it safely
       messageId: (data?.body?.messageId || data?.messageId || 'Email sent successfully').toString()
     };
   } catch (error) {
     console.error('Error sending confirmation email:', error);
-    return { 
+    return {
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      status: 500 // Default to internal server error for exceptions
     };
   }
 }

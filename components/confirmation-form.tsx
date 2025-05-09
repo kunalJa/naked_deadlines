@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { ImagePreview } from "@/components/image-preview"
 import { CheckCircle2, XCircle, Home, Twitter } from "lucide-react"
-import { confirmGoalCompletion } from "@/lib/actions"
 
 interface ConfirmationFormProps {
   token: string

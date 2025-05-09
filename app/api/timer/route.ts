@@ -48,19 +48,6 @@ export async function GET() {
 
     // Check if the timer is still active (deadline is in the future)
     const timerData = data as TimerData;
-    const deadlineDate = new Date(timerData.deadline);
-    const isActive = deadlineDate > new Date();
-    
-    if (!isActive) {
-      // If the timer has expired, we should clean it up
-      await supabase
-        .from(TIMERS_TABLE)
-        .delete()
-        .eq('username', user.twitterHandle);
-        
-      return NextResponse.json({ success: false, error: 'Timer has expired' }, { status: 404 });
-    }
-
     return NextResponse.json({ success: true, data: timerData });
   } catch (error) {
     console.error('Exception getting timer:', error);

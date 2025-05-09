@@ -1,8 +1,17 @@
-import { TimerData, TimerResponse } from '@/types/timer';
+import { TimerData } from '@/types/timer';
 
-interface EmailResponse {
+// Updated interfaces to include status code
+export interface ServiceResponse {
   success: boolean;
   error?: string;
+  status?: number; // HTTP status code
+}
+
+export interface TimerResponse extends ServiceResponse {
+  data?: TimerData;
+}
+
+interface EmailResponse extends ServiceResponse {
   messageId?: string;
 }
 
@@ -24,10 +33,18 @@ export async function sendConfirmationEmail(timerData: TimerData): Promise<Email
 
     if (!response.ok) {
       console.error('Error sending confirmation email:', result.error);
-      return { success: false, error: result.error };
+      return { 
+        success: false, 
+        error: result.error, 
+        status: response.status // Include the HTTP status code
+      };
     }
 
-    return { success: true, messageId: result.messageId };
+    return { 
+      success: true, 
+      messageId: result.messageId,
+      status: response.status 
+    };
   } catch (error) {
     console.error('Exception sending confirmation email:', error);
     return { 
@@ -54,11 +71,19 @@ export async function saveTimer(timerData: TimerData): Promise<TimerResponse> {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('Error saving timer:', result.error);
-      return { success: false, error: result.error };
+      // console.error('Error saving timer:', result.error);
+      return { 
+        success: false, 
+        error: result.error,
+        status: response.status // Include the HTTP status code
+      };
     }
 
-    return { success: true, data: result.data };
+    return { 
+      success: true, 
+      data: result.data,
+      status: response.status 
+    };
   } catch (error) {
     console.error('Exception saving timer:', error);
     return { 
@@ -83,25 +108,38 @@ export async function getActiveTimer(): Promise<TimerResponse> {
     });
     console.log('getActiveTimer: API response status:', response.status);
 
-    const result = await response.json();
-    console.log('getActiveTimer: API response data:', result);
-
     if (!response.ok) {
       // If it's a 404, it means there's no active timer
       if (response.status === 404) {
-        return { success: false, error: result.error || 'No active timer found' };
+        console.log('getActiveTimer: No active timer found');
+        return { 
+          success: true, 
+          data: undefined,
+          status: 200 // No timer found is not an error for our purposes
+        };
       }
-      
-      console.error('Error getting timer:', result.error);
-      return { success: false, error: result.error };
+      // console.error('Error getting timer:', response.status);
+      const errorText = await response.text();
+      return { 
+        success: false, 
+        error: errorText || `HTTP error ${response.status}`,
+        status: response.status 
+      };
     }
 
-    return { success: true, data: result.data };
+    const result = await response.json();
+    console.log('getActiveTimer: Timer data received:', result.data);
+    return { 
+      success: true, 
+      data: result.data,
+      status: response.status 
+    };
   } catch (error) {
     console.error('Exception getting timer:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      status: 500 // Default to internal server error for exceptions
     };
   }
 }
@@ -119,17 +157,26 @@ export async function deleteTimer(): Promise<TimerResponse> {
       },
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
-      return { success: false, error: result.error };
+      console.error('Error deleting timer:', response.status);
+      const errorText = await response.text();
+      return { 
+        success: false, 
+        error: errorText || `HTTP error ${response.status}`,
+        status: response.status
+      };
     }
 
-    return { success: true };
+    return { 
+      success: true,
+      status: response.status
+    };
   } catch (error) {
+    console.error('Exception deleting timer:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      status: 500 // Default to internal server error for exceptions
     };
   }
 }

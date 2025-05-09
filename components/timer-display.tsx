@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { ImagePreview } from "@/components/image-preview"
 import { Progress } from "@/components/ui/progress"
-import { Share2, AlertTriangle, Hourglass } from "lucide-react"
+import { Share2, AlertTriangle, Hourglass, Twitter } from "lucide-react"
 import { ChickenOutModal } from "@/components/chicken-out-modal"
 import { SuccessCelebration } from "@/components/success-celebration"
 import { getActiveTimer, deleteTimer, cleanupVerifiedTimer } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
 import { useAuth } from "@/components/auth-provider"
+import { signOut } from "next-auth/react"
 
 // Default confirmation URL (in a real app, this would be dynamically generated)
 const CONFIRMATION_BASE_URL = typeof window !== 'undefined' ? `${window.location.origin}/confirm` : ''
@@ -20,6 +21,7 @@ export function TimerDisplay() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
+  // We'll use both signOut from next-auth/react and useAuth's user context
   
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [progress, setProgress] = useState<number>(0)
@@ -30,13 +32,87 @@ export function TimerDisplay() {
   // No need to track timer data changes separately
   const [isChickenOutModalOpen, setIsChickenOutModalOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // States for tweet functionality
+  const [isTweeting, setIsTweeting] = useState(false)
+  const [tweetResult, setTweetResult] = useState<{success: boolean, message: string} | null>(null)
 
+  // Function to check if the JWT is expired
+  const checkJwtExpiration = async () => {
+    try {
+      // Fetch the session status from the API
+      const response = await fetch('/api/auth/session');
+      if (!response.ok) {
+        throw new Error('Failed to fetch session');
+      }
+      
+      const session = await response.json();
+      
+      // If no session exists or the session is empty, consider token expired
+      if (!session || Object.keys(session).length === 0 || !session.user) {
+        console.log('Session expired or not found');
+        return true; // Token is expired or invalid
+      }
+      
+      // Check if the session has an expiry timestamp
+      if (session.expires) {
+        const expiryTime = new Date(session.expires).getTime();
+        const currentTime = Date.now();
+        
+        // If the expiry time is in the past, the token is expired
+        if (expiryTime <= currentTime) {
+          console.log('Session has expired based on timestamp');
+          return true;
+        }
+      }
+      
+      return false; // Token is valid
+    } catch (error) {
+      console.error('Error checking JWT expiration:', error);
+      return true; // Assume expired on error
+    }
+  };
+  
+  // Handle session expiration
+  const handleSessionExpired = async () => {
+    console.log('Handling expired session...');
+    setIsTweeting(false)
+    // Use the signOut function from auth provider to properly log the user out
+    try {
+      // Don't delete the image data, as per requirements
+      // Sign out properly and redirect to home with session_expired=true query parameter
+      await signOut({ redirect: false });
+      router.push('/?session_expired=true');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Fallback in case signOut fails
+      router.push('/?session_expired=true');
+    }
+  };
+  
   useEffect(() => {
     // This effect only runs once on component mount
     const fetchTimerData = async () => {
+      // First, check if JWT is expired
+      const isExpired = await checkJwtExpiration();
+      
+      if (isExpired) {
+        handleSessionExpired();
+        return;
+      }
+      
       if (!user) {
         setError('You must be logged in to view your timer');
         return;
+      }
+      
+      // Check for email_status parameter in the URL
+      const emailStatus = searchParams.get('email_status');
+      if (emailStatus === 'failed') {
+        setStatusMessage({
+          type: 'info',
+          message: 'Your timer was created successfully, but we could not send the verification email to your friend. They will still be able to verify your goal with the link below.'
+        });
       }
 
       try {
@@ -117,9 +193,26 @@ export function TimerDisplay() {
       setProgress(progressPercent)
 
       if (remaining <= 0) {
-        clearInterval(interval)
-        // In a real app, this would trigger the tweet to be sent
-        // Time's up - no toast notification
+        clearInterval(interval);
+        
+        // When timer hits 0, first check if the goal has been verified
+        const checkAndTweet = async () => {
+          const isVerified = await checkVerificationStatus();
+          
+          // If not verified, send the embarrassing tweet
+          if (!isVerified && !isTweeting) {
+            setStatusMessage({
+              type: 'error',
+              message: 'Time is up! Your goal was not verified. Posting your embarrassing image to Twitter...'
+            });
+            
+            // Call the tweet function to post the image
+            await sendTweet();
+          }
+        };
+        
+        // Execute the check and tweet function
+        checkAndTweet();
       }
     }, 1000)
 
@@ -168,9 +261,105 @@ export function TimerDisplay() {
   // State to track if we should show the success celebration view
   const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
 
+  // Function to send the tweet with the embarrassing image
+  const sendTweet = async () => {
+    if (!imagePreview || !timerData) return;
+    
+    setIsTweeting(true);
+    setTweetResult(null);
+    
+    try {
+      // First, convert the base64 image to a File object
+      const response = await fetch(imagePreview);
+      const blob = await response.blob();
+      const imageName = `embarrassing_${Date.now()}.jpg`;
+      const imageFile = new File([blob], imageName, { type: 'image/jpeg' });
+      
+      // Create FormData and append image and message
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      formData.append("message", `I didn't complete my goal: ${timerData.goaldescription} 😱 #NakedDeadlines`);
+      
+      // Send to the tweet API endpoint
+      const response2 = await fetch("/api/tweet", {
+        method: "POST",
+        body: formData
+      });
+      
+      // Check for authentication errors (401 Unauthorized)
+      if (response2.status === 401) {
+        console.log('Authentication token expired. Logging out and redirecting...');
+        setStatusMessage({
+          type: 'error',
+          message: 'Your login session has expired. Please sign in again to complete this action.'
+        });
+        
+        // Handle expired session properly by signing out and redirecting with query param
+        setTimeout(() => {
+          handleSessionExpired();
+        }, 3000);
+        
+        return;
+      }
+      
+      if (!response2.ok) {
+        throw new Error(`Failed to tweet: ${response2.status}`);
+      }
+      
+      const result = await response2.json();
+      setTweetResult({ 
+        success: true, 
+        message: `Your embarrassing image has been tweeted! Tweet ID: ${result.tweetId}` 
+      });
+      
+      setStatusMessage({
+        type: 'info',
+        message: 'Your embarrassing image has been tweeted! The shame is complete.'
+      });
+      
+      // Delete the timer from the database after successful tweet
+      try {
+        console.log('Deleting timer after successful tweet...');
+        const deleteResult = await deleteTimer();
+        if (deleteResult.success) {
+          console.log('Timer deleted successfully after tweeting');
+          
+          // Clear local storage data
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('nakedDeadlines_imagePreview');
+            localStorage.removeItem('nakedDeadlines_imageName');
+            localStorage.removeItem('nakedDeadlines_imageType');
+          }
+          
+          // Redirect to the failure page after a short delay
+          setTimeout(() => {
+            router.push('/failure');
+          }, 5000);
+        } else {
+          console.error('Failed to delete timer after tweeting:', deleteResult.error);
+        }
+      } catch (deleteError) {
+        console.error('Error deleting timer after tweeting:', deleteError);
+      }
+    } catch (error) {
+      console.error("Error sending tweet:", error);
+      setTweetResult({ 
+        success: false, 
+        message: `Failed to tweet: ${error instanceof Error ? error.message : String(error)}` 
+      });
+      
+      setStatusMessage({
+        type: 'error',
+        message: `Failed to tweet embarrassing image: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    } finally {
+      setIsTweeting(false);
+    }
+  };
+
   // Function to check if the timer has been verified by the friend
   const checkVerificationStatus = async () => {
-    if (!timerData) return
+    if (!timerData) return;
     
     // Set status to loading
     setStatusMessage({
@@ -189,17 +378,20 @@ export function TimerDisplay() {
         // Show celebration view if verified
         if (result.data.isverified) {
           setShowSuccessCelebration(true);
+          return true; // Return true if verified
         } else {
           setStatusMessage({
             type: 'info',
             message: "Your friend hasn't verified your goal completion yet."
           });
+          return false; // Return false if not verified
         }
       } else {
         setStatusMessage({
           type: 'error',
           message: 'Could not check verification status.'
         });
+        return false;
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to check verification status'
@@ -207,6 +399,7 @@ export function TimerDisplay() {
         type: 'error',
         message: errorMessage
       });
+      return false;
     }
   }
   

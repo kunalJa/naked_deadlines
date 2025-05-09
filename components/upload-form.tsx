@@ -17,6 +17,7 @@ import { useAuth } from "@/components/auth-provider"
 import { saveTimer, sendConfirmationEmail } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
 import { useToast } from "@/components/ui/use-toast"
+import { signOut } from "next-auth/react"
 
 export function UploadForm() {
   const router = useRouter()
@@ -112,6 +113,23 @@ export function UploadForm() {
         method: "POST",
         body: formData
       })
+      
+      // Check for 401 Unauthorized response
+      if (response.status === 401) {
+        console.log('Authentication token expired. Logging out and redirecting...');
+        setTweetResult({ 
+          success: false, 
+          message: 'Your login session has expired. Please sign in again to complete this action.' 
+        });
+        
+        // Handle expired session properly by signing out and redirecting with query param
+        setTimeout(async () => {
+          await signOut({ redirect: false });
+          router.push('/?session_expired=true');
+        }, 2000);
+        
+        return;
+      }
       
       if (!response.ok) {
         throw new Error(`Failed to tweet: ${response.status}`)
@@ -228,6 +246,15 @@ export function UploadForm() {
 
       const result = await saveTimer(timerData)
 
+      // Check for 401 Unauthorized response
+      if (result.status === 401) {
+        console.log('Authentication token expired. Logging out and redirecting...');
+        // Handle expired session properly by signing out and redirecting with query param
+        await signOut({ redirect: false });
+        router.push('/?session_expired=true');
+        return;
+      }
+      
       if (!result.success) {
         throw new Error(result.error || "Failed to save timer data")
       }
@@ -235,6 +262,16 @@ export function UploadForm() {
       // Send confirmation email to the friend
       try {
         const emailResult = await sendConfirmationEmail(timerData)
+        
+        // Check for 401 Unauthorized response in email sending
+        if (emailResult.status === 401) {
+          console.log('Authentication token expired during email sending. Logging out and redirecting...');
+          // Handle expired session properly by signing out and redirecting with query param
+          await signOut({ redirect: false });
+          router.push('/?session_expired=true');
+          return;
+        }
+        
         if (!emailResult.success) {
           console.warn('Warning: Failed to send confirmation email:', emailResult.error)
           // Show a warning toast but continue with the process
@@ -243,14 +280,17 @@ export function UploadForm() {
             description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
             variant: 'destructive'
           });
-        } else {
-          // Show a success toast
-          toast({
-            title: 'Timer created!',
-            description: 'Your timer was created and we\'ve sent an email to your friend with the verification link.',
-            variant: 'default'
-          });
+          // Redirect to timer page with query param to notify about email failure
+          router.push('/timer?email_status=failed');
+          return;
         }
+        
+        // If we get here, email was sent successfully
+        toast({
+          title: 'Timer created!',
+          description: 'Your timer was created and we\'ve sent an email to your friend with the verification link.',
+          variant: 'default'
+        });
       } catch (emailError) {
         console.warn('Warning: Exception sending confirmation email:', emailError)
         // Show a warning toast but continue with the process
@@ -259,6 +299,9 @@ export function UploadForm() {
           description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
           variant: 'destructive'
         });
+        // Redirect to timer page with query param to notify about email failure
+        router.push('/timer?email_status=failed');
+        return;
       }
 
       // Redirect to the timer page - no need to pass username in URL
