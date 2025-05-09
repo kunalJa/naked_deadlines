@@ -89,7 +89,7 @@ export default function PrivacyPage() {
             <p>We may update this Privacy Policy from time to time. We will notify you of significant changes.</p>
 
             <h3>Contact Us</h3>
-            <p>If you have any questions, contact us at: support@nakeddeadlines.com</p>
+            <p>If you have any questions, contact us at: support@mail.nakeddeadlines.com</p>
           </div>
         </section>
       </main>

@@ -75,7 +75,7 @@ export default function TermsPage() {
             </p>
 
             <h3>Contact Us</h3>
-            <p>Questions? Contact us at: support@nakeddeadlines.com</p>
+            <p>Questions? Contact us at: support@mail.nakeddeadlines.com</p>
           </div>
         </section>
       </main>

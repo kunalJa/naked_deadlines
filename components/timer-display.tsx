@@ -286,7 +286,7 @@ export function TimerDisplay() {
       // Create FormData and append image and message
       const formData = new FormData();
       formData.append("image", imageFile);
-      formData.append("message", `I didn't complete my goal: ${timerData.goaldescription} 😱 #NakedDeadlines`);
+      formData.append("message", `My ambition outweighed my execution. Failed goal: ${timerData.goaldescription}. The price? This photo 😭. #NakedDeadlines (Can you accomplish your goals in time? Find out at nakeddeadlines com)`);
       
       // Send to the tweet API endpoint
       const response2 = await fetch("/api/tweet", {
