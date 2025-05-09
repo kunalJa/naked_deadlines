@@ -52,27 +52,16 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, account, profile }: { token: Token; account: any; profile?: any }) {
-      // Persist the OAuth access_token to the token right after signin
-      if (account) {
-        token.accessToken = account.access_token;
-        
-        // Log the full profile and account objects to see all available data
-        // console.log("Twitter OAuth Profile:", JSON.stringify(profile, null, 2));
-        // console.log("Twitter OAuth Account:", JSON.stringify(account, null, 2));
-        
-        // Try to extract Twitter handle from various possible locations
-        if (profile?.screen_name) {
-          token.twitterHandle = profile.screen_name;
-        } else if (profile?.data?.username) {
-          token.twitterHandle = profile.data.username;
-        } else if (token.name && token.name.startsWith('@')) {
-          token.twitterHandle = token.name.substring(1);
-        } else if (token.name) {
-          // If we can't find it elsewhere, use the name as a fallback
-          token.twitterHandle = token.name;
+        // Persist the OAuth access_token to the token right after signin
+        if (account && profile) {
+          token.accessToken = account.access_token;
+          if (profile.data?.username) {
+            token.twitterHandle = profile.data.username;
+          } else {
+            throw new Error("OAuth profile incomplete. Please ensure the necessary permissions were granted to the application.");
+          }
         }
-      }
-      
+
       return token;
     },
     async session({ session, token }: { session: SessionWithToken; token: Token }) {
@@ -89,11 +78,11 @@ export const authOptions = {
         }
       }
       
-      // console.log("Session being sent to client:", JSON.stringify(session, null, 2));
       return session;
     },
   },
   debug: process.env.NODE_ENV === "development",
+  trustHost: true, // Important for production
 }
 
 const handler = NextAuth(authOptions)
