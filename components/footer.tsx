@@ -8,7 +8,7 @@ export function Footer() {
         <div className="flex items-center gap-2">
           <Bath className="h-5 w-5 text-primary" />
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} NakedDeadlines. Exposing procrastination since 2023! 🙈
+            © <a href="https://x.com/youngkunal">@youngkunal</a> - Rio industries
           </p>
         </div>
 

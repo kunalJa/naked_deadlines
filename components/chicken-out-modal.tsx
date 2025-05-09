@@ -50,7 +50,7 @@ export function ChickenOutModal({ isOpen, onClose, onConfirm }: ChickenOutModalP
               </div>
             </div>
             <p className="text-center italic text-xs">
-              You could just... you know... actually FINISH your goal instead? 💪
+              Its gonna cost you...
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export function ChickenOutModal({ isOpen, onClose, onConfirm }: ChickenOutModalP
               htmlFor="confirm"
               className="text-xs font-medium leading-tight peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Yes, I'm a chicken. Bawk bawk. 🐔 I give up on my goals and accept eternal shame.
+              Yes, I'm a chicken. Bawk bawk. 🐔 I can't finish this goal and accept eternal shame.
             </Label>
           </div>
         </div>

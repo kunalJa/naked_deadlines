@@ -44,7 +44,7 @@ export default function FailurePage() {
             </p>
             
             <blockquote className="italic border-l-4 border-blue-300 pl-3 py-2 text-blue-700 bg-blue-50/50 rounded-r-md mt-4">
-              "Success is not final, failure is not fatal: It is the courage to continue that counts."
+              "Some things are O. K."
             </blockquote>
           </div>
         </CardContent>

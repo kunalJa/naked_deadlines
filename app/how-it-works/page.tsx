@@ -16,7 +16,7 @@ export default function HowItWorksPage() {
               How NakedDeadlines Works
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              A fun (and slightly terrifying) way to keep you accountable! 🙈
+              A fun (and slightly terrifying) way to keep you accountable!
             </p>
           </div>
 
