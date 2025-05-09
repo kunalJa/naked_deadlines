@@ -326,9 +326,9 @@ export function TimerDisplay() {
           
           // Clear local storage data
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('nakedDeadlines_imagePreview');
-            localStorage.removeItem('nakedDeadlines_imageName');
-            localStorage.removeItem('nakedDeadlines_imageType');
+            localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_preview`);
+            localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_imageName`);
+            localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_imageType`);
           }
           
           // Redirect to the failure page after a short delay

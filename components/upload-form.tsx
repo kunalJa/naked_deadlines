@@ -42,7 +42,7 @@ export function UploadForm() {
   useEffect(() => {
     // Only run in the browser, not during server-side rendering
     if (typeof window !== 'undefined') {
-      const savedImagePreview = localStorage.getItem('nakedDeadlines_imagePreview');
+      const savedImagePreview = localStorage.getItem(`nakedDeadlines_${user!.twitterHandle}_preview`);
       if (savedImagePreview) {
         setImagePreview(savedImagePreview);
         
@@ -51,8 +51,8 @@ export function UploadForm() {
           try {
             const response = await fetch(savedImagePreview);
             const blob = await response.blob();
-            const fileName = localStorage.getItem('nakedDeadlines_imageName') || 'image.jpg';
-            const fileType = localStorage.getItem('nakedDeadlines_imageType') || 'image/jpeg';
+            const fileName = localStorage.getItem(`nakedDeadlines_${user!.twitterHandle}_name`) || 'image.jpg';
+            const fileType = localStorage.getItem(`nakedDeadlines_${user!.twitterHandle}_type`) || 'image/jpeg';
             const file = new File([blob], fileName, { type: fileType });
             setImage(file);
           } catch (error) {
@@ -79,9 +79,9 @@ export function UploadForm() {
         
         // Save to local storage - this automatically replaces any previous image
         if (typeof window !== 'undefined') {
-          localStorage.setItem('nakedDeadlines_imagePreview', previewUrl);
-          localStorage.setItem('nakedDeadlines_imageName', file.name);
-          localStorage.setItem('nakedDeadlines_imageType', file.type);
+          localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_preview`, previewUrl);
+          localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_name`, file.name);
+          localStorage.setItem(`nakedDeadlines_${user!.twitterHandle}_type`, file.type);
         }
       }
       reader.readAsDataURL(file)
@@ -158,9 +158,9 @@ export function UploadForm() {
     
     // Clear from local storage
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('nakedDeadlines_imagePreview');
-      localStorage.removeItem('nakedDeadlines_imageName');
-      localStorage.removeItem('nakedDeadlines_imageType');
+      localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_preview`);
+      localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_name`);
+      localStorage.removeItem(`nakedDeadlines_${user!.twitterHandle}_type`);
     }
   }
 
@@ -211,7 +211,7 @@ export function UploadForm() {
       // We're keeping the image entirely local to the browser
       // No image data is ever sent to the server for privacy reasons
       // Generate a unique key for the image in local storage
-      const imageKey = `nakedDeadlines_${user.twitterHandle}_${Date.now()}`
+      const imageKey = `nakedDeadlines_${user.twitterHandle}`
       
       // Save the current image with the new key
       if (imagePreview) {
