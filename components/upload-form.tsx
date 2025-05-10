@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/components/auth-provider"
 import { saveTimer, sendConfirmationEmail } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
-import { useToast } from "@/hooks/use-toast"
+
 import { signOut } from "next-auth/react"
 
 export function UploadForm() {
@@ -34,7 +34,6 @@ export function UploadForm() {
   const [activeTab, setActiveTab] = useState<string>("date")
   const [saveError, setSaveError] = useState<string | null>(null)
   const { user } = useAuth()
-  const { toast } = useToast()
 
   // Load image from local storage when component mounts
   useEffect(() => {
@@ -216,31 +215,12 @@ export function UploadForm() {
         
         if (!emailResult.success) {
           console.warn('Warning: Failed to send confirmation email:', emailResult.error)
-          // Show a warning toast but continue with the process
-          toast({
-            title: 'Timer created, but email not sent',
-            description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
-            variant: 'destructive'
-          });
           // Redirect to timer page with query param to notify about email failure
           router.push('/timer?email_status=failed');
           return;
         }
-        
-        // If we get here, email was sent successfully
-        toast({
-          title: 'Timer created!',
-          description: 'Your timer was created and we\'ve sent an email to your friend with the verification link.',
-          variant: 'default'
-        });
       } catch (emailError) {
         console.warn('Warning: Exception sending confirmation email:', emailError)
-        // Show a warning toast but continue with the process
-        toast({
-          title: 'Timer created, but email not sent',
-          description: 'Your timer was created successfully, but we couldn\'t send an email to your friend. They\'ll still be able to verify your goal with the link.',
-          variant: 'destructive'
-        });
         // Redirect to timer page with query param to notify about email failure
         router.push('/timer?email_status=failed');
         return;
@@ -253,11 +233,6 @@ export function UploadForm() {
       console.error("Failed to start timer:", error)
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
       setSaveError(errorMessage)
-      toast({
-        title: "Error starting timer",
-        description: errorMessage,
-        variant: "destructive",
-      })
     } finally {
       setIsSubmitting(false)
     }
