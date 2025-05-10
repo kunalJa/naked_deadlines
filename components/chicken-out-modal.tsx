@@ -38,7 +38,7 @@ export function ChickenOutModal({ isOpen, onClose, onConfirm }: ChickenOutModalP
         </DialogHeader>
 
         <div className="space-y-3 py-2">
-          <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg border-2 border-yellow-300 dark:border-yellow-700">
+          <div className="bg-yellow-100 p-3 rounded-lg border-2 border-yellow-300">
             <p className="font-bold text-center text-sm">Your photo is THIS CLOSE to being tweeted!</p>
             <div className="flex justify-center my-2">
               <div className="relative w-16 h-16 bg-muted rounded-full overflow-hidden">

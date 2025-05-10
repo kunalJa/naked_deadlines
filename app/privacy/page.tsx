@@ -14,7 +14,7 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="prose prose-lg dark:prose-invert max-w-none">
+          <div className="prose prose-lg max-w-none">
             <h2>Privacy Policy for NakedDeadlines</h2>
             <p>
               <strong>Effective Date:</strong>{" "}

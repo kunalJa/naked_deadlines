@@ -306,7 +306,7 @@ export function UploadForm() {
                   Upload Your "Motivational" Photo
                 </Label>
                 
-                <div className="mt-2 p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
+                <div className="mt-2 p-3 border-2 border-green-400 rounded-md bg-green-100">
                   <p className="text-sm font-bold flex items-center">
                     <span className="mr-2">🔒</span>
                     Your photos are 100% private and stored ONLY in your browser.
@@ -338,7 +338,7 @@ export function UploadForm() {
 
                 {/* Show selected file name if an image is selected */}
                 {image && (
-                  <div className="mt-2 text-sm bg-white/50 dark:bg-black/20 p-2 rounded flex items-center">
+                  <div className="mt-2 text-sm bg-white/50 p-2 rounded flex items-center">
                     <div className="w-6 h-6 bg-accent/30 rounded-full flex items-center justify-center mr-2">
                       <Camera className="h-3 w-3" />
                     </div>

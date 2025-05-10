@@ -595,7 +595,7 @@ export function TimerDisplay() {
                     <Hourglass className="h-5 w-5 text-primary animate-pulse" />
                     Time Remaining
                   </h3>
-                  <div className="text-5xl font-bold tabular-nums text-center py-4 bg-white dark:bg-black rounded-lg shadow-inner">
+                  <div className="text-5xl font-bold tabular-nums text-center py-4 bg-white rounded-lg shadow-inner">
                     {formatTimeRemaining()}
                   </div>
                   <Progress value={progress} className="h-4 bg-secondary/30" />
@@ -611,9 +611,9 @@ export function TimerDisplay() {
                   
                   {statusMessage.type && (
                     <div className={`mt-2 p-3 border-2 rounded-md ${
-                      statusMessage.type === 'success' ? 'border-green-400 bg-green-100 dark:bg-green-900/30' : 
-                      statusMessage.type === 'error' ? 'border-red-400 bg-red-100 dark:bg-red-900/30' : 
-                      'border-blue-400 bg-blue-100 dark:bg-blue-900/30'
+                      statusMessage.type === 'success' ? 'border-green-400 bg-green-100' : 
+                      statusMessage.type === 'error' ? 'border-red-400 bg-red-100' : 
+                      'border-blue-400 bg-blue-100'
                     }`}>
                       <p className="text-sm font-medium">
                         {statusMessage.type === 'success' && '✅ '}
@@ -624,7 +624,7 @@ export function TimerDisplay() {
                     </div>
                   )}
                   
-                  <div className="p-3 border-2 border-green-400 rounded-md bg-green-100 dark:bg-green-900/30">
+                  <div className="p-3 border-2 border-green-400 rounded-md bg-green-100">
                     <p className="text-sm font-bold flex items-center">
                       <span className="mr-2">🔒</span>
                       Your photo is stored ONLY in your browser.
@@ -634,7 +634,7 @@ export function TimerDisplay() {
                     </p>
                   </div>
   
-                  <div className="flex items-center p-3 border-2 border-yellow-400 rounded-md bg-yellow-100 dark:bg-yellow-900/30">
+                  <div className="flex items-center p-3 border-2 border-yellow-400 rounded-md bg-yellow-100">
                     <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
                     <p className="text-sm font-bold">
                       You can't stop this timer yourself! Only your friend can save you! 😈

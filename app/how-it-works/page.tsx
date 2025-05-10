@@ -66,30 +66,30 @@ export default function HowItWorksPage() {
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-4 bounce-hover">
-                      <Shower className="h-8 w-8 text-green-600 dark:text-green-500" />
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4 bounce-hover">
+                      <Shower className="h-8 w-8 text-green-600" />
                     </div>
                     <h3 className="text-xl font-bold mb-2">If You Complete Your Goal 🎉</h3>
                     <p className="text-muted-foreground mb-4">
                       Your friend confirms your completion before the curtain fully opens!
                     </p>
-                    <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-md w-full border-2 border-green-300 dark:border-green-800">
-                      <p className="font-bold text-green-600 dark:text-green-500">
+                    <div className="bg-green-100 p-4 rounded-md w-full border-2 border-green-300">
+                      <p className="font-bold text-green-600">
                         Your photo stays private and is deleted! You're safe! 🎊
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4 bounce-hover">
-                      <Bath className="h-8 w-8 text-red-600 dark:text-red-500" />
+                    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4 bounce-hover">
+                      <Bath className="h-8 w-8 text-red-600" />
                     </div>
                     <h3 className="text-xl font-bold mb-2">If You Miss Your Deadline 😱</h3>
                     <p className="text-muted-foreground mb-4">
                       The curtain fully opens and your friend doesn't confirm in time!
                     </p>
-                    <div className="bg-red-100 dark:bg-red-900/20 p-4 rounded-md w-full border-2 border-red-300 dark:border-red-800">
-                      <p className="font-bold text-red-600 dark:text-red-500">
+                    <div className="bg-red-100 p-4 rounded-md w-full border-2 border-red-300">
+                      <p className="font-bold text-red-600">
                         Your photo is automatically tweeted from your account! Exposed! 🙈
                       </p>
                     </div>

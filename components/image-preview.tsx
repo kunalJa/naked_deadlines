@@ -137,11 +137,11 @@ export function ImagePreview({ imageUrl, progress, showTowel, isCompleted = fals
 
       <div className="mt-2 text-center">
         {isCompleted ? (
-          <p className="text-sm font-medium text-green-600 dark:text-green-500">
+          <p className="text-sm font-medium text-green-600">
             Woohoo! Goal completed! Your image is safe and sound! 🎉
           </p>
         ) : progress >= 100 ? (
-          <p className="text-sm font-medium text-red-600 dark:text-red-500">
+          <p className="text-sm font-medium text-red-600">
             Oh no! Time's up! Your image is now on Twitter for all to see! 🙈
           </p>
         ) : (

@@ -99,12 +99,12 @@ export function SuccessCelebration({ timerData, imagePreview, onTimerDeleted }: 
           You successfully completed your goal!
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-6 text-center relative z-10 bg-gradient-to-b from-blue-50/50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20">
+      <CardContent className="p-6 text-center relative z-10 bg-gradient-to-b from-blue-50/50 to-blue-100/50">
         {/* More bathroom elements */}
         <div className="py-6 space-y-6">
           <div className="relative w-full max-w-xs mx-auto h-40 overflow-hidden rounded-lg shadow-md border-4 border-blue-300/50">
             {/* Water ripple effect */}
-            <div className="absolute inset-0 bg-blue-100/30 dark:bg-blue-900/30 z-5"></div>
+            <div className="absolute inset-0 bg-blue-100/30 z-5"></div>
             
             {imagePreview && (
               <div className="absolute inset-0 bg-gradient-to-t from-blue-900/70 to-transparent z-10"></div>
@@ -116,7 +116,7 @@ export function SuccessCelebration({ timerData, imagePreview, onTimerDeleted }: 
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900">
+              <div className="w-full h-full flex items-center justify-center bg-blue-100">
                 <p className="text-blue-500">Image not available</p>
               </div>
             )}
