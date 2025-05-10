@@ -269,6 +269,26 @@ export function TimerDisplay() {
   // State to track if we should show the success celebration view
   const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
 
+  // Function to generate a random tweet message for failed goals
+  const generateFailedGoalTweet = (goalDescription: string): string => {
+    const messages = [
+      `My ambition outweighed my execution. Failed goal: ${goalDescription}. The price? This photo 😭. #NakedDeadlines (Can you accomplish your goals in time? Find out at nakeddeadlines com)`,
+      `Procrastination: 1, Me: 0. I didn't finish ${goalDescription} in time. Now I pay with this embarrassing photo. #NakedDeadlines (Set your own deadlines at nakeddeadlines com)`,
+      `This is what failure looks like. I couldn't complete ${goalDescription} by my deadline. #NakedDeadlines (Try it yourself at nakeddeadlines com)`,
+      `Public accountability works! Just not for me this time. Failed to: ${goalDescription}. #NakedDeadlines (Set your own challenges at nakeddeadlines com)`,
+      `The walk of shame: I didn't complete ${goalDescription} on time. This photo is my punishment. #NakedDeadlines (Will you do better? nakeddeadlines com)`,
+      `Time management isn't my strong suit. Failed goal: ${goalDescription}. Enjoy this embarrassing photo! #NakedDeadlines (Try it yourself at nakeddeadlines com)`,
+      `I set a goal. I missed a goal. I pay the price. Failed: ${goalDescription}. #NakedDeadlines (Set your own consequences at nakeddeadlines com)`,
+      `This is what accountability looks like. I failed to ${goalDescription} and now you all get to see this photo. #NakedDeadlines (Your turn at nakeddeadlines com)`,
+      `Lesson learned: set realistic goals. I couldn't ${goalDescription} in time. #NakedDeadlines (Will you risk it? nakeddeadlines com)`,
+      `Today's reminder that actions have consequences. I didn't ${goalDescription} by the deadline. #NakedDeadlines (Set your own deadlines at nakeddeadlines com)`
+    ];
+    
+    // Get a random index between 0 and 9
+    const randomIndex = Math.floor(Math.random() * messages.length);
+    return messages[randomIndex];
+  };
+
   // Function to send the tweet with the embarrassing image
   const sendTweet = async () => {
     if (!imagePreview || !timerData) return;
@@ -286,7 +306,7 @@ export function TimerDisplay() {
       // Create FormData and append image and message
       const formData = new FormData();
       formData.append("image", imageFile);
-      formData.append("message", `My ambition outweighed my execution. Failed goal: ${timerData.goaldescription}. The price? This photo 😭. #NakedDeadlines (Can you accomplish your goals in time? Find out at nakeddeadlines com)`);
+      formData.append("message", generateFailedGoalTweet(timerData.goaldescription));
       
       // Send to the tweet API endpoint
       const response2 = await fetch("/api/tweet", {
