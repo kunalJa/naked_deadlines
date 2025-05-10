@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/components/auth-provider"
 import { saveTimer, sendConfirmationEmail } from "@/services/timer-service"
 import { TimerData } from "@/types/timer"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { signOut } from "next-auth/react"
 
 export function UploadForm() {
