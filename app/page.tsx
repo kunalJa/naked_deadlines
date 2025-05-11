@@ -69,7 +69,7 @@ export default function Home() {
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto bubble-text">
                 Upload a photo, set a deadline, and if you don't complete your goal in time, the photo gets tweeted from
-                your account. Social pressure meets productivity.
+                your account. Social pressure meets productivity. No images are uploaded to any servers, they are stored only on your device.
               </p>
             </div>
 

@@ -30,7 +30,7 @@ export default function HowItWorksPage() {
                     </div>
                     <h3 className="text-xl font-bold mb-2">1. Upload a Photo</h3>
                     <p className="text-muted-foreground">
-                      Choose a photo you'd rather keep private! The more embarrassing, the more motivating! 😅
+                      Choose a photo you'd rather keep private! (Your images are kept 100% locally on your device). 🔒
                     </p>
                   </div>
 
