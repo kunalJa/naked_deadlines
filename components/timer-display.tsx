@@ -444,7 +444,7 @@ export function TimerDisplay() {
     if (navigator.share) {
       navigator.share({
         title: "Verify my goal completion",
-        text: `Please verify that I've completed my goal: ${timerData.goaldescription}`,
+        text: `Please verify that I've completed my goal: ${timerData.goaldescription} `,
         url: confirmationUrl,
       })
     } else {
