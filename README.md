@@ -37,6 +37,7 @@ Naked Deadlines is a unique accountability app that helps you meet your goals by
 - Easy goal setting with deadlines
 - Friend verification system using secure confirmation links
 - UUID-based confirmation tokens for security
+- Paid "chicken out" option (99¢) for those who want to cancel their timer
 
 ### 🎉 User Experience
 
@@ -52,6 +53,7 @@ Naked Deadlines is a unique accountability app that helps you meet your goals by
 - **Authentication**: NextAuth.js with Twitter OAuth
 - **Database**: Supabase
 - **Email**: Brevo API for confirmation emails
+- **Payments**: Stripe for "chicken out" payments
 - **Deployment**: Vercel
 
 ## Fun Facts
@@ -96,7 +98,16 @@ TWITTER_CLIENT_SECRET=your_twitter_client_secret
 AUTH_SECRET=your_auth_secret
 NEXT_PUBLIC_APP_URL=your_app_url
 BREVO_API_KEY=your_brevo_api_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 ```
+
+### Stripe Setup
+
+1. Create a Stripe account at [stripe.com](https://stripe.com)
+2. Get your API keys from the Stripe Dashboard
+3. Add them to your `.env` file
+4. For testing, use Stripe's test cards (e.g., `4242 4242 4242 4242` with any future expiry date and any CVC)
 
 ## License
 

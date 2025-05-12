@@ -15,13 +15,26 @@ interface EmailResponse extends ServiceResponse {
   messageId?: string;
 }
 
+// Helper function to get the base URL
+function getBaseUrl() {
+  // Check if we're running on the server or client
+  if (typeof window === 'undefined') {
+    // Server-side: use the environment variable or default to localhost
+    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  } else {
+    // Client-side: use the window location
+    return window.location.origin;
+  }
+}
+
 /**
  * Send a confirmation email to a friend after creating a timer
  */
 export async function sendConfirmationEmail(timerData: TimerData): Promise<EmailResponse> {
   try {
+    const baseUrl = getBaseUrl();
     // Call the API route to send the confirmation email
-    const response = await fetch('/api/email', {
+    const response = await fetch(`${baseUrl}/api/email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,8 +72,9 @@ export async function sendConfirmationEmail(timerData: TimerData): Promise<Email
  */
 export async function saveTimer(timerData: TimerData): Promise<TimerResponse> {
   try {
+    const baseUrl = getBaseUrl();
     // Call the API route to save the timer
-    const response = await fetch('/api/timer', {
+    const response = await fetch(`${baseUrl}/api/timer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -99,8 +113,9 @@ export async function saveTimer(timerData: TimerData): Promise<TimerResponse> {
 export async function getActiveTimer(): Promise<TimerResponse> {
   try {
     console.log('getActiveTimer: Fetching timer from API');
+    const baseUrl = getBaseUrl();
     // Call the API route to get the timer
-    const response = await fetch('/api/timer', {
+    const response = await fetch(`${baseUrl}/api/timer`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -149,8 +164,9 @@ export async function getActiveTimer(): Promise<TimerResponse> {
  */
 export async function deleteTimer(): Promise<TimerResponse> {
   try {
+    const baseUrl = getBaseUrl();
     // Call the API route to delete the timer
-    const response = await fetch('/api/timer', {
+    const response = await fetch(`${baseUrl}/api/timer`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

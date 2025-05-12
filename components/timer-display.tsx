@@ -32,6 +32,7 @@ export function TimerDisplay() {
   // No need to track timer data changes separately
   const [isChickenOutModalOpen, setIsChickenOutModalOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
   
   // States for tweet functionality
   const [isTweeting, setIsTweeting] = useState(false)
@@ -272,16 +273,16 @@ export function TimerDisplay() {
   // Function to generate a random tweet message for failed goals
   const generateFailedGoalTweet = (goalDescription: string): string => {
     const messages = [
-      `My ambition outweighed my execution. Failed goal: ${goalDescription}. The price? This photo 😭. #NakedDeadlines (Can you accomplish your goals in time? Find out at nakeddeadlines com)`,
-      `Procrastination: 1, Me: 0. I didn't finish ${goalDescription} in time. Now I pay with this embarrassing photo. #NakedDeadlines (Set your own deadlines at nakeddeadlines com)`,
-      `This is what failure looks like. I couldn't complete ${goalDescription} by my deadline. #NakedDeadlines (Try it yourself at nakeddeadlines com)`,
-      `Public accountability works! Just not for me this time. Failed to: ${goalDescription}. #NakedDeadlines (Set your own challenges at nakeddeadlines com)`,
-      `The walk of shame: I didn't complete ${goalDescription} on time. This photo is my punishment. #NakedDeadlines (Will you do better? nakeddeadlines com)`,
-      `Time management isn't my strong suit. Failed goal: ${goalDescription}. Enjoy this embarrassing photo! #NakedDeadlines (Try it yourself at nakeddeadlines com)`,
-      `I set a goal. I missed a goal. I pay the price. Failed: ${goalDescription}. #NakedDeadlines (Set your own consequences at nakeddeadlines com)`,
-      `This is what accountability looks like. I failed to ${goalDescription} and now you all get to see this photo. #NakedDeadlines (Your turn at nakeddeadlines com)`,
-      `Lesson learned: set realistic goals. I couldn't ${goalDescription} in time. #NakedDeadlines (Will you risk it? nakeddeadlines com)`,
-      `Today's reminder that actions have consequences. I didn't ${goalDescription} by the deadline. #NakedDeadlines (Set your own deadlines at nakeddeadlines com)`
+      `My ambition outweighed my execution. Failed goal: ${goalDescription}. The price? This photo 😭. #NakedDeadlines (Can you accomplish your goals in time? Find out at nakeddeadlines.com)`,
+      `Procrastination: 1, Me: 0. I didn't finish ${goalDescription} in time. Now I pay with this embarrassing photo. #NakedDeadlines (Set your own deadlines at nakeddeadlines.com)`,
+      `This is what failure looks like. I couldn't complete ${goalDescription} by my deadline. #NakedDeadlines (Try it yourself at nakeddeadlines.com)`,
+      `Public accountability works! Just not for me this time. Failed to: ${goalDescription}. #NakedDeadlines (Set your own challenges at nakeddeadlines.com)`,
+      `The walk of shame: I didn't complete ${goalDescription} on time. This photo is my punishment. #NakedDeadlines (Will you do better? nakeddeadlines.com)`,
+      `Time management isn't my strong suit. Failed goal: ${goalDescription}. Enjoy this embarrassing photo! #NakedDeadlines (Try it yourself at nakeddeadlines.com)`,
+      `I set a goal. I missed a goal. I pay the price. Failed: ${goalDescription}. #NakedDeadlines (Set your own consequences at nakeddeadlines.com)`,
+      `This is what accountability looks like. I failed to ${goalDescription} and now you all get to see this photo. #NakedDeadlines (Your turn at nakeddeadlines.com)`,
+      `Lesson learned: set realistic goals. I couldn't ${goalDescription} in time. #NakedDeadlines (Will you risk it? nakeddeadlines.com)`,
+      `Today's reminder that actions have consequences. I didn't ${goalDescription} by the deadline. #NakedDeadlines (Set your own deadlines at nakeddeadlines.com)`
     ];
     
     // Get a random index between 0 and 9
@@ -457,22 +458,27 @@ export function TimerDisplay() {
       })
     }
   }
-
+  
   const handleChickenOut = () => {
+    // Reset payment success state when opening the modal
+    setPaymentSuccess(false)
     setIsChickenOutModalOpen(true)
   }
-
-  const handleConfirmChickenOut = async () => {
-    if (!timerData) return
+  
+  // Accept explicit timer data parameter for direct deletion after payment
+  const handleConfirmChickenOut = async (explicitTimerData?: any) => {
+    // Use explicitly provided timer data or fall back to state
+    const timerToDelete = explicitTimerData || timerData;
+    
+    if (!timerToDelete) return;
     
     try {
       // First, immediately clear the image from local storage to prevent accidental tweeting
       // even if there's an error with Supabase
-      if (timerData.imagekey) {
-        localStorage.removeItem(`${timerData.imagekey}_preview`)
-        localStorage.removeItem(`${timerData.imagekey}_name`)
-        localStorage.removeItem(`${timerData.imagekey}_type`)
-        // Debug log - remove in production
+      if (timerToDelete.imagekey) {
+        localStorage.removeItem(`${timerToDelete.imagekey}_preview`)
+        localStorage.removeItem(`${timerToDelete.imagekey}_name`)
+        localStorage.removeItem(`${timerToDelete.imagekey}_type`)
       }
       
       // Then delete the timer from Supabase
@@ -483,19 +489,52 @@ export function TimerDisplay() {
       }
       
       setIsChickenOutModalOpen(false)
-      
-      // Redirect to home page
-      router.push("/")
+      await checkForNewTimers()
     } catch (error) {
       // Handle error silently without toast
       console.error('Failed to cancel timer:', error)
       setIsChickenOutModalOpen(false)
     }
   }
-
-  // Render UI based on state
   
-  // Function to check for new timers after deletion
+  // Handle payment success from URL params
+  useEffect(() => {
+    // Check for payment_success parameter which indicates a successful Stripe payment
+    const paymentSuccessParam = searchParams.get('payment_success');
+    if (paymentSuccessParam === 'true') {
+      // Clear the URL parameter without a page reload
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('payment_success');
+      window.history.replaceState({}, '', newUrl);
+      
+      // Check if we have a pending chicken out
+      const pendingPayment = localStorage.getItem('chicken_out_payment_pending');
+      if (pendingPayment === 'true') {
+        // Clear the pending payment flag
+        localStorage.removeItem('chicken_out_payment_pending');
+        
+        // Fetch timer data and complete the chicken out process
+        const fetchTimerAndChickenOut = async () => {
+          try {
+            const timerResponse = await getActiveTimer();
+            
+            if (timerResponse.success && timerResponse.data) {
+              // Directly pass the timer data to handleConfirmChickenOut
+              handleConfirmChickenOut(timerResponse.data);
+            } else {
+              // If no timer data is found, redirect to home page
+              router.push("/");
+            }
+          } catch (error) {
+            console.error('Error completing payment flow:', error);
+            router.push("/");
+          }
+        };
+        
+        fetchTimerAndChickenOut();
+      }
+    }
+  }, [searchParams, router]);
   const checkForNewTimers = async () => {
     setIsLoading(true);
     try {
